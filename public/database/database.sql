@@ -4,11 +4,12 @@ USE phone_shop;
 -- ===========================
 -- BẢNG SẢN PHẨM
 -- ===========================
-CREATE TABLE san_pham (
-id_sp INT AUTO_INCREMENT PRIMARY KEY,
-ten_sp VARCHAR(150) NOT NULL,
-hang_sx VARCHAR(50) NOT NULL,
-danh_muc VARCHAR(50) NOT NULL,
+ALTER TABLE san_pham
+ADD ram VARCHAR(20),
+ADD man_hinh VARCHAR(100),
+ADD camera VARCHAR(255),
+ADD pin VARCHAR(50),
+ADD he_dieu_hanh VARCHAR(50);
 
 ```
 gia DECIMAL(12,2) NOT NULL,
