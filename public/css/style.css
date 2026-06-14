@@ -291,6 +291,9 @@ body {
   transition: 0.3s;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 .product-card:hover {
   transform: translateY(-5px);
@@ -354,6 +357,7 @@ body {
   font-size: 13px;
   text-transform: uppercase;
   transition: 0.3s;
+  margin-top: auto;
 }
 .btn-add-cart:hover {
   background: linear-gradient(90deg, #0056b3, #007bff);
