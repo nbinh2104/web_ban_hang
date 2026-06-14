@@ -1,3 +1,18 @@
+<?php
+
+include("../config/database.php");
+
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 1;
+
+$sql = "SELECT * FROM sanpham WHERE id = $id";
+$result = mysqli_query($conn, $sql);
+
+$sp = mysqli_fetch_assoc($result);
+
+if (!$sp) {
+    die("Không tìm thấy sản phẩm");
+}
+?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -5,7 +20,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="../public/css/style.css" />
     <link rel="stylesheet" href="../public/css/detail.css" />
-    <title>iPhone 15 Pro Max - ABA Mobile</title>
+    <title><?= $sp['ten_sp']; ?> - ABA Mobile</title>
   </head>
   <body>
     <header class="modern-header">
@@ -67,7 +82,9 @@
       <div class="breadcrumb" style="margin-bottom: 30px">
         <a href="index.html">Trang chủ</a> &raquo;
         <a href="dienthoai.html">Điện thoại</a> &raquo;
-        <span style="color: #00a8ff">iPhone 15 Pro Max</span>
+        <span style="color: #00a8ff">
+    <?= $sp['ten_sp']; ?>
+</span>
       </div>
 
       <div class="product-top-section">
@@ -76,9 +93,9 @@
             <span class="badge-sale-detail">-15%</span>
             <img
               id="main-image"
-              src="https://placehold.co/600x600/1a2235/e2e8f0?text=iPhone+15+Pro+Max+(Titan)"
-              alt="iPhone 15 Pro Max"
-            />
+              src="<?= $sp['hinh_anh']; ?>"
+              alt="<?= $sp['ten_sp']; ?>"
+/>
           </div>
           <div class="thumbnail-list">
             <div
@@ -141,14 +158,21 @@
         </div>
 
         <div class="product-info-detail">
-          <h1 class="detail-title">iPhone 15 Pro Max 256GB Chính hãng VN/A</h1>
+          <h1 class="detail-title">
+              <?= $sp['ten_sp']; ?></h1>
+
           <div class="detail-rating">
             ⭐⭐⭐⭐⭐ <span class="review-count">(1.2k đánh giá)</span>
           </div>
 
           <div class="detail-price-box">
-            <span class="detail-current-price">29.990.000 đ</span>
-            <span class="detail-old-price">34.990.000 đ</span>
+            <span class="detail-current-price">
+                  <?= number_format($sp['gia']); ?> đ
+            </span>
+
+            <span class="detail-old-price">
+                  <?= number_format($sp['gia_cu']); ?> đ
+            </span>
           </div>
 
           <div class="option-group">
@@ -214,10 +238,7 @@
             Đặc điểm nổi bật
           </h2>
           <p>
-            iPhone 15 Pro Max là mẫu flagship cao cấp nhất của Apple trong năm
-            nay. Với thiết kế khung Titan chuẩn hàng không vũ trụ, máy trở nên
-            nhẹ nhàng hơn nhưng lại vô cùng bền bỉ. Điểm nhấn lớn nhất là chip
-            A17 Pro cực kỳ mạnh mẽ, cùng hệ thống camera tele 5x hoàn toàn mới.
+            <?= $sp['mo_ta']; ?>
           </p>
           <img
             src="https://placehold.co/800x400/1a2235/e2e8f0?text=Khung+Titan"
@@ -244,43 +265,53 @@
             Thông số kỹ thuật
           </h2>
           <table class="spec-table">
-            <tr>
-              <td>Màn hình:</td>
-              <td>OLED, 6.7", Super Retina XDR</td>
-            </tr>
-            <tr>
-              <td>Hệ điều hành:</td>
-              <td>iOS 17</td>
-            </tr>
-            <tr>
-              <td>Camera sau:</td>
-              <td>Chính 48 MP & Phụ 12 MP, 12 MP</td>
-            </tr>
-            <tr>
-              <td>Camera trước:</td>
-              <td>12 MP</td>
-            </tr>
-            <tr>
-              <td>Chip (CPU):</td>
-              <td>Apple A17 Pro 6 nhân</td>
-            </tr>
-            <tr>
-              <td>RAM:</td>
-              <td>8 GB</td>
-            </tr>
-            <tr>
-              <td>Dung lượng:</td>
-              <td>256 GB</td>
-            </tr>
-            <tr>
-              <td>Pin, Sạc:</td>
-              <td>4422 mAh, 20 W</td>
-            </tr>
-            <tr>
-              <td>Cổng kết nối:</td>
-              <td>Type-C</td>
-            </tr>
-          </table>
+
+        <tr>
+        <td>Màn hình:</td>
+        <td><?= $sp['man_hinh']; ?></td>
+        </tr>
+
+        <tr>
+        <td>Hệ điều hành:</td>
+        <td><?= $sp['he_dieu_hanh']; ?></td>
+        </tr>
+
+        <tr>
+        <td>Camera sau:</td>
+        <td><?= $sp['camera_sau']; ?></td>
+        </tr>
+
+        <tr>
+        <td>Camera trước:</td>
+        <td><?= $sp['camera_truoc']; ?></td>
+        </tr>
+
+        <tr>
+        <td>Chip (CPU):</td>
+        <td><?= $sp['cpu']; ?></td>
+        </tr>
+
+        <tr>
+        <td>RAM:</td>
+        <td><?= $sp['ram']; ?></td>
+        </tr>
+
+        <tr>
+        <td>Dung lượng:</td>
+        <td><?= $sp['dung_luong']; ?></td>
+        </tr>
+
+        <tr>
+        <td>Pin:</td>
+        <td><?= $sp['pin']; ?></td>
+        </tr>
+
+        <tr>
+        <td>Cổng kết nối:</td>
+        <td><?= $sp['cong_ket_noi']; ?></td>
+        </tr>
+
+        </table>
         </div>
       </div>
     </main>

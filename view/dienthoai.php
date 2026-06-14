@@ -202,24 +202,24 @@
           <br />
           <div class="product-grid category-grid">
             <div class="product-card">
-<<<<<<< HEAD
-    <a href="chi_tiet.php?id=1" style="text-decoration:none;color:inherit">
-        <span class="badge badge-sale">-15%</span>
+  <a href="detail.php?id=4" class="card-link">
+    <span class="badge badge-sale">-15%</span>
 
-        <img
-            src="https://placehold.co/250x250/1a2235/e2e8f0?text=iPhone+15"
-            alt="iPhone 15"
-        />
+    <img
+      src="https://placehold.co/250x250/1a2235/e2e8f0?text=iPhone+15"
+      alt="iPhone 15"
+    />
 
-        <h3 class="product-title">
-            iPhone 15 Pro Max 256GB
-        </h3>
-    </a>
+    <h3 class="product-title">
+      iPhone 15 Pro Max 256GB
+    </h3>
 
     <div class="price-group">
-        <p class="old-price">34.990.000 đ</p>
-        <p class="product-price">29.990.000 đ</p>
+      <p class="old-price">34.990.000 đ</p>
+      <p class="product-price">29.990.000 đ</p>
     </div>
+  </a>
+</div>
 
     <button class="btn-add-cart">
         🛒 Thêm vào giỏ
