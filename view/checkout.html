@@ -123,9 +123,13 @@
                     <div class="order-item-price">${thanhTien.toLocaleString("vi-VN")} đ</div>
                 </div>`;
         });
-        document.getElementById("sub-total").innerText = tong.toLocaleString("vi-VN") + " đ";
-        document.getElementById("grand-total").innerText = tong.toLocaleString("vi-VN") + " đ";
+        document.getElementById("sub-total").innerText =
+            tong.toLocaleString("vi-VN") + " đ";
+
+        document.getElementById("grand-total").innerText =
+            tong.toLocaleString("vi-VN") + " đ";
     }
+
     hienThiOrderSummary();
     updateCartBadge();
 </script>
