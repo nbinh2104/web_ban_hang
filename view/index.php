@@ -2,7 +2,7 @@
 // 1. KẾT NỐI DATABASE VÀ LẤY DỮ LIỆU
 include('../config/database.php');
 
-$sql = "SELECT * FROM products ORDER BY id DESC";
+$sql = "SELECT * FROM products ORDER BY id DESC LIMIT 8";
 $result = mysqli_query($conn, $sql);
 ?>
 <!doctype html>
@@ -48,8 +48,8 @@ $result = mysqli_query($conn, $sql);
           <ul class="modern-menu">
             <li><a href="index.php" class="active">Trang chủ</a></li>
             <li><a href="dienthoai.php">Điện thoại</a></li>
-            <li><a href="suachua.html">Sửa chữa</a></li>
-            <li><a href="tincongnghe.html">Tin công nghệ</a></li>
+            <li><a href="suachua.php">Sửa chữa</a></li>
+            <li><a href="tincongnghe.php">Tin công nghệ</a></li>
           </ul>
         </nav>
 
