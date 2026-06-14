@@ -1,344 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giỏ Hàng | ABA Mobile</title>
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../public/css/style.css" />
-    <style>
-      :root {
-        --bg: #f0f4f8;
-        --bg2: #ffffff;
-        --bg3: #e8f0fe;
-        --accent: #1a73e8;
-        --accent2: #0d47a1;
-        --text: #1a1a1e;
-        --muted: #6b7280;
-        --border: rgba(0, 0, 0, 0.08);
-        --card: rgba(26, 255115, 232, 0.03);
-      }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        background: var(--bg);
-        color: var(--text);
-        font-family: "Nunito", sans-serif;
-        min-height: 100vh;
-      }
-      header {
-        background: var(--bg2);
-        border-bottom: 1px solid var(--border);
-        padding: 0 2rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 64px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-      }
-      .logo {
-        font-family: "Rajdhani", sans-serif;
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: var(--text);
-        text-decoration: none;
-        letter-spacing: 1px;
-      }
-      .logo span {
-        color: var(--accent);
-      }
-      nav a {
-        color: var(--muted);
-        text-decoration: none;
-        margin-left: 1.5rem;
-        font-size: 0.9rem;
-        transition: color 0.2s;
-      }
-      nav a:hover {
-        color: var(--text);
-      }
-      .cart-icon-wrap {
-        position: relative;
-        margin-left: 1.5rem;
-        color: var(--text);
-        font-size: 1.3rem;
-        text-decoration: none;
-      }
-      #cart-badge {
-        position: absolute;
-        top: -8px;
-        right: -10px;
-        background: var(--accent);
-        color: white;
-        font-size: 0.65rem;
-        font-weight: 700;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: none;
-        align-items: center;
-        justify-content: center;
-      }
-      main {
-        max-width: 1100px;
-        margin: 3rem auto;
-        padding: 0 1.5rem;
-      }
-      .page-title {
-        font-family: "Rajdhani", sans-serif;
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 0.3rem;
-      }
-      .page-title span {
-        color: var(--accent);
-      }
-      .page-sub {
-        color: var(--muted);
-        font-size: 0.9rem;
-        margin-bottom: 2rem;
-      }
-      .cart-table-wrap {
-        background: var(--bg2);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        overflow: hidden;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      thead tr {
-        background: var(--bg3);
-      }
-      thead th {
-        padding: 1rem 1.2rem;
-        text-align: left;
-        font-family: "Rajdhani", sans-serif;
-        font-size: 0.85rem;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
-      tbody tr {
-        border-top: 1px solid var(--border);
-        transition: background 0.2s;
-        animation: fadeUp 0.4s ease both;
-      }
-      tbody tr:hover {
-        background: var(--card);
-      }
-      @keyframes fadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(12px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .row-animate {
-        animation: fadeUp 0.4s ease both;
-      }
-      td {
-        padding: 1rem 1.2rem;
-        vertical-align: middle;
-      }
-      .td-product {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-      .td-product img {
-        width: 70px;
-        height: 70px;
-        object-fit: contain;
-        border-radius: 10px;
-        background: var(--bg3);
-        padding: 6px;
-        border: 1px solid var(--border);
-      }
-      .td-product span {
-        font-weight: 600;
-        font-size: 0.95rem;
-      }
-      .td-price {
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-      .td-total {
-        color: var(--accent);
-        font-weight: 700;
-        font-family: "Rajdhani", sans-serif;
-        font-size: 1.05rem;
-      }
-      .qty-control {
-        display: flex;
-        align-items: center;
-        background: var(--bg3);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        overflow: hidden;
-        width: fit-content;
-      }
-      .qty-control button {
-        background: none;
-        border: none;
-        color: var(--text);
-        width: 32px;
-        height: 36px;
-        cursor: pointer;
-        font-size: 1rem;
-        transition: background 0.15s;
-      }
-      .qty-control button:hover {
-        background: var(--accent);
-      }
-      .qty-control input {
-        width: 42px;
-        text-align: center;
-        background: none;
-        border: none;
-        color: var(--text);
-        font-size: 0.9rem;
-        font-family: "Nunito", sans-serif;
-        outline: none;
-      }
-      .btn-remove {
-        background: none;
-        border: 1px solid var(--border);
-        color: var(--muted);
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        transition: all 0.2s;
-      }
-      .btn-remove:hover {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: white;
-      }
-      .empty-cart {
-        text-align: center;
-        padding: 4rem 1rem !important;
-      }
-      .empty-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-      }
-      .empty-cart p {
-        color: var(--muted);
-        margin-bottom: 1.5rem;
-      }
-      .btn-continue {
-        background: var(--accent);
-        color: white;
-        padding: 0.7rem 1.8rem;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.9rem;
-      }
-      .cart-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-top: 1.5rem;
-        padding: 1.5rem;
-        background: var(--bg2);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-      }
-      .summary-info {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .summary-label {
-        color: var(--muted);
-        font-size: 0.85rem;
-      }
-      .summary-total {
-        font-family: "Rajdhani", sans-serif;
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--accent);
-      }
-      .footer-actions {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-      }
-      .btn-back {
-        color: var(--muted);
-        text-decoration: none;
-        font-size: 0.9rem;
-        border: 1px solid var(--border);
-        padding: 0.7rem 1.4rem;
-        border-radius: 8px;
-        transition: all 0.2s;
-      }
-      .btn-back:hover {
-        color: var(--text);
-        border-color: var(--muted);
-      }
-      .btn-checkout {
-        background: linear-gradient(135deg, var(--accent), var(--accent2));
-        color: white;
-        padding: 0.8rem 2.2rem;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 700;
-        font-family: "Rajdhani", sans-serif;
-        font-size: 1.1rem;
-        transition:
-          opacity 0.2s,
-          transform 0.15s;
-      }
-      .btn-checkout:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
-      }
-      #toast {
-        position: fixed;
-        bottom: 2rem;
-        left: 50%;
-        transform: translateX(-50%) translateY(60px);
-        background: #222;
-        border: 1px solid var(--accent);
-        color: var(--text);
-        padding: 0.8rem 1.6rem;
-        border-radius: 50px;
-        font-size: 0.9rem;
-        z-index: 999;
-        opacity: 0;
-        transition: all 0.3s;
-      }
-      #toast.show {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <a href="index.html" class="logo">ABA <span>Mobile</span></a>
-      <nav>
-
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../public/css/cart.css">
 </head>
@@ -346,47 +11,44 @@
 <header>
     <a href="index.html" class="logo">ABA <span>Mobile</span></a>
     <nav>
-
         <a href="index.html">Trang chủ</a>
         <a href="index.html#san-pham">Sản phẩm</a>
-        <a href="cart.html" class="cart-icon-wrap"
-          >🛒 <span id="cart-badge"></span
-        ></a>
-      </nav>
-    </header>
-    <main>
-      <div class="page-title">Giỏ <span>hàng</span></div>
-      <div class="page-sub" id="so-mon">0 sản phẩm</div>
-      <div class="cart-table-wrap">
+        <a href="cart.html" class="cart-icon-wrap">🛒 <span id="cart-badge"></span></a>
+    </nav>
+</header>
+<main>
+    <div class="page-title">Giỏ <span>hàng</span></div>
+    <div class="page-sub" id="so-mon">0 sản phẩm</div>
+    <div class="cart-table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Sản phẩm</th>
-              <th>Đơn giá</th>
-              <th>Số lượng</th>
-              <th>Thành tiền</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="danh-sach-gio"></tbody>
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Đơn giá</th>
+                    <th>Số lượng</th>
+                    <th>Thành tiền</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="danh-sach-gio"></tbody>
         </table>
-      </div>
-      <div class="cart-footer">
+    </div>
+    <div class="cart-footer">
         <div class="summary-info">
-          <span class="summary-label">Tổng thanh toán</span>
-          <span class="summary-total" id="tong-tien">0 đ</span>
+            <span class="summary-label">Tổng thanh toán</span>
+            <span class="summary-total" id="tong-tien">0 đ</span>
         </div>
         <div class="footer-actions">
-          <a href="index.html" class="btn-back">← Tiếp tục mua</a>
-          <a href="checkout.html" class="btn-checkout">Thanh toán →</a>
+            <a href="index.html" class="btn-back">← Tiếp tục mua</a>
+            <a href="checkout.html" class="btn-checkout">Thanh toán →</a>
         </div>
-      </div>
-    </main>
-    <div id="toast"></div>
-    <script src="js/cart.js"></script>
-    <script>
-      hienThiGio();
-      updateCartBadge();
-    </script>
-  </body>
+    </div>
+</main>
+<div id="toast"></div>
+<script src="js/cart.js"></script>
+<script>
+    hienThiGio();
+    updateCartBadge();
+</script>
+</body>
 </html>
