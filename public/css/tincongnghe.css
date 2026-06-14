@@ -1,0 +1,207 @@
+/* =========================================
+   CSS DÀNH RIÊNG CHO TRANG TIN TỨC
+========================================= */
+
+.breadcrumb {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #666;
+}
+.breadcrumb a {
+  color: #f12a27;
+  text-decoration: none;
+}
+
+/* Bố cục chính 2 cột */
+.news-layout {
+  display: flex;
+  gap: 30px;
+}
+
+.news-main {
+  flex: 7; /* Chiếm 7 phần diện tích */
+}
+
+.news-sidebar {
+  flex: 3; /* Chiếm 3 phần diện tích */
+}
+
+/* --- BÀI VIẾT NỔI BẬT --- */
+.featured-news {
+  margin-bottom: 30px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.featured-news img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s;
+}
+
+.featured-news:hover img {
+  transform: scale(1.02); /* Phóng to ảnh nhẹ khi di chuột */
+}
+
+.featured-news .news-content {
+  padding: 20px;
+}
+
+.featured-news h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.featured-news h2 a {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.featured-news h2 a:hover {
+  color: #f12a27;
+}
+
+.news-meta {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 15px;
+}
+
+.featured-news p {
+  color: #555;
+  line-height: 1.6;
+}
+
+/* --- DANH SÁCH BÀI VIẾT DỌC --- */
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.news-card {
+  display: flex;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.news-card img {
+  width: 220px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.news-info h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.news-info h3 a {
+  color: #333;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.news-info h3 a:hover {
+  color: #f12a27;
+}
+
+.news-info p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* --- SIDEBAR BÊN PHẢI --- */
+.sidebar-widget {
+  background: #fdfdfd;
+  border: 1px solid #eee;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.sidebar-widget h3 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+  border-left: 4px solid #f12a27;
+  padding-left: 10px;
+}
+
+.trending-list {
+  list-style: none;
+  padding: 0;
+}
+
+.trending-list li {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #ddd;
+}
+
+.trending-list li:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.rank {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ccc;
+  font-style: italic;
+}
+
+/* Top 1, 2, 3 có màu nổi hơn */
+.trending-list li:nth-child(1) .rank {
+  color: #f12a27;
+}
+.trending-list li:nth-child(2) .rank {
+  color: #f39c12;
+}
+.trending-list li:nth-child(3) .rank {
+  color: #3498db;
+}
+
+.trending-list a {
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.4;
+  transition: 0.3s;
+}
+
+.trending-list a:hover {
+  color: #f12a27;
+}
+
+/* --- PHÂN TRANG TÁI SỬ DỤNG --- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 30px;
+}
+.page-link {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid #ddd;
+  color: #333;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.page-link.active,
+.page-link:hover {
+  background-color: #f12a27;
+  color: white;
+  border-color: #f12a27;
+}

@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../public/css/style.css" />
+    <title>ABA Mobile</title>
+  </head>
+  <body>
+    <header>
+      <div
+        class="container"
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 15px 20px;
+          background-color: #f8f9fa;
+        "
+      >
+        <div class="logo">
+          <a
+            href="index.html"
+            style="
+              font-weight: bold;
+              font-size: 24px;
+              text-decoration: none;
+              color: #f12a27;
+            "
+          >
+            ABA Mobile
+          </a>
+        </div>
+        <nav class="nav-container">
+          <ul class="main-menu">
+            <li><a href="">Trang chủ</a></li>
+
+            <li class="has-dropdown">
+              <a href="">Điện thoại ▾</a>
+              <ul class="dropdown-menu">
+                <li class="has-dropdown">
+                  <a href="">iPhone ▸</a>
+                  <ul class="dropdown-menu drop-side">
+                    <li><a href="#">iPhone X</a></li>
+                    <li><a href="#">iPhone 11</a></li>
+                    <li><a href="#">iPhone 12</a></li>
+                    <li><a href="#">iPhone 13</a></li>
+                    <li><a href="#">iPhone 14</a></li>
+                    <li><a href="#">iPhone 15</a></li>
+                    <li><a href="#">iPhone 16</a></li>
+                    <li><a href="#">iPhone 17</a></li>
+                  </ul>
+                </li>
+
+                <li class="has-dropdown">
+                  <a href="">Samsung ▸</a>
+                  <ul class="dropdown-menu drop-side">
+                    <li class="has-dropdown">
+                      <a href="">Galaxy ZFold/ZFlip ▸</a>
+                      <ul class="dropdown-menu drop-side">
+                        <li><a href="#">Galaxy Z Fold 3</a></li>
+                        <li><a href="#">Galaxy Z Fold 4</a></li>
+                        <li><a href="#">Galaxy Z Fold 5</a></li>
+                        <li><a href="#">Galaxy Z Fold 6</a></li>
+                        <li><a href="#">Galaxy Z Fold 7</a></li>
+                        <li><a href="#">Galaxy Z Flip 3</a></li>
+                        <li><a href="#">Galaxy Z Flip 4</a></li>
+                        <li><a href="#">Galaxy Z Flip 5</a></li>
+                        <li><a href="#">Galaxy Z Flip 6</a></li>
+                        <li><a href="#">Galaxy Z Flip 7</a></li>
+                      </ul>
+                    </li>
+
+                    <li class="has-dropdown">
+                      <a href="">Galaxy Note ▸</a>
+                      <ul class="dropdown-menu drop-side">
+                        <li><a href="#">Galaxy Note 10</a></li>
+                        <li><a href="#">Galaxy Note 20</a></li>
+                      </ul>
+                    </li>
+
+                    <li class="has-dropdown">
+                      <a href="">Galaxy S ▸</a>
+                      <ul class="dropdown-menu drop-side">
+                        <li><a href="#">Galaxy S20</a></li>
+                        <li><a href="#">Galaxy S21</a></li>
+                        <li><a href="#">Galaxy S22</a></li>
+                        <li><a href="#">Galaxy S23</a></li>
+                        <li><a href="#">Galaxy S24</a></li>
+                        <li><a href="#">Galaxy S25</a></li>
+                        <li><a href="#">Galaxy S26</a></li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+
+            <li><a href="">Sửa chữa</a></li>
+            <li><a href="">Tin công nghệ</a></li>
+          </ul>
+        </nav>
+
+        <div class="search-bar">
+          <form action="category.html" method="GET" style="display: flex">
+            <input
+              type="text"
+              name="search"
+              placeholder="Bạn tìm điện thoại gì..."
+              style="
+                padding: 8px 15px;
+                width: 250px;
+                border: 1px solid #ccc;
+                border-radius: 4px 0 0 4px;
+              "
+            />
+            <button
+              type="submit"
+              style="
+                padding: 8px 15px;
+                background-color: #333;
+                color: white;
+                border: none;
+                border-radius: 0 4px 4px 0;
+                cursor: pointer;
+              "
+            >
+              Tìm
+            </button>
+          </form>
+        </div>
+        <div class="cart-icon">
+          <a
+            href="cart.html"
+            style="
+              text-decoration: none;
+              color: #333;
+              font-weight: bold;
+              display: flex;
+              align-items: center;
+              gap: 5px;
+            "
+          >
+            🛒(<span id="cart-count" style="color: #f12a27; font-size: 16px"
+              >0</span
+            >)
+          </a>
+        </div>
+      </div>
+    </header>
+    <main class="container" style="padding: 20px">
+      <!-- Thanh điều hướng (Breadcrumb) -->
+      <div class="breadcrumb">
+        <a href="index.html">Trang chủ</a> &raquo;
+        <span>Điện thoại di động</span>
+      </div>
+
+      <!-- Bố cục 2 cột (Bộ lọc & Sản phẩm) -->
+      <div class="category-layout">
+        <!-- Cột Trái: Sidebar Bộ Lọc -->
+        <aside class="sidebar-filter">
+          <h3 class="filter-title">BỘ LỌC SẢN PHẨM</h3>
+
+          <!-- Bọc trong form để sau này TV3 dễ lấy dữ liệu -->
+          <form action="" method="GET">
+            <!-- Lọc theo Hãng -->
+            <div class="filter-group">
+              <h4>Hãng sản xuất</h4>
+              <label
+                ><input type="checkbox" name="brand" value="apple" /> Apple
+                (iPhone)</label
+              >
+              <label
+                ><input type="checkbox" name="brand" value="samsung" />
+                Samsung</label
+              >
+              <label
+                ><input type="checkbox" name="brand" value="xiaomi" />
+                Xiaomi</label
+              >
+              <label
+                ><input type="checkbox" name="brand" value="oppo" /> OPPO</label
+              >
+            </div>
+
+            <!-- Lọc theo Mức giá -->
+            <div class="filter-group">
+              <h4>Mức giá</h4>
+              <label
+                ><input type="radio" name="price" value="duoi-5-trieu" /> Dưới 5
+                triệu</label
+              >
+              <label
+                ><input type="radio" name="price" value="5-15-trieu" /> Từ 5 -
+                15 triệu</label
+              >
+              <label
+                ><input type="radio" name="price" value="tren-15-trieu" /> Trên
+                15 triệu</label
+              >
+            </div>
+
+            <button type="submit" class="btn-filter">Áp dụng bộ lọc</button>
+          </form>
+        </aside>
+
+        <!-- Cột Phải: Danh sách sản phẩm -->
+        <section class="category-main">
+          <!-- Tiêu đề và Sắp xếp -->
+          <div class="category-header">
+            <h1>Điện thoại di động (120 sản phẩm)</h1>
+            <select class="sort-box">
+              <option value="newest">Mới nhất</option>
+              <option value="price-asc">Giá: Thấp đến Cao</option>
+              <option value="price-desc">Giá: Cao xuống Thấp</option>
+            </select>
+          </div>
+
+          <!-- Lưới sản phẩm (Tái sử dụng class product-grid của trang chủ) -->
+          <div class="product-grid">
+            <!-- SP 1 -->
+            <div class="product-card">
+              <img
+                src="https://placehold.co/250x250/eeeeee/333333?text=iPhone+15"
+                alt="iPhone 15"
+              />
+              <h3 class="product-title">iPhone 15 Pro Max</h3>
+              <p class="product-price">29.990.000 đ</p>
+              <button class="btn-add-cart">Thêm vào giỏ</button>
+            </div>
+            <!-- SP 2 -->
+            <div class="product-card">
+              <img
+                src="https://placehold.co/250x250/eeeeee/333333?text=Galaxy+S24"
+                alt="Samsung Galaxy S24"
+              />
+              <h3 class="product-title">Samsung Galaxy S24</h3>
+              <p class="product-price">22.490.000 đ</p>
+              <button class="btn-add-cart">Thêm vào giỏ</button>
+            </div>
+            <!-- SP 3 -->
+            <div class="product-card">
+              <img
+                src="https://placehold.co/250x250/eeeeee/333333?text=Xiaomi+14"
+                alt="Xiaomi 14"
+              />
+              <h3 class="product-title">Xiaomi 14 5G</h3>
+              <p class="product-price">19.990.000 đ</p>
+              <button class="btn-add-cart">Thêm vào giỏ</button>
+            </div>
+          </div>
+
+          <!-- Phân trang (Pagination) -->
+          <div class="pagination">
+            <a href="#" class="page-link">&laquo; Trước</a>
+            <a href="#" class="page-link active">1</a>
+            <a href="#" class="page-link">2</a>
+            <a href="#" class="page-link">3</a>
+            <a href="#" class="page-link">Sau &raquo;</a>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer>
+      <div class="container footer-content">
+        <div class="footer-col">
+          <h3>ABA Mobile</h3>
+          <p>
+            Hệ thống bán lẻ điện thoại di động chính hãng, uy tín hàng đầu với
+            giá cả cạnh tranh.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h3>Thông Tin Liên Hệ</h3>
+          <p>📍 Địa chỉ: Hà Nội, Việt Nam</p>
+          <p>📞 Điện thoại: 1900 xxxx</p>
+          <p>✉️ Email: cskh@abamobile.com</p>
+        </div>
+
+        <div class="footer-col">
+          <h3>Chính Sách</h3>
+          <p><a href="#">Chính sách bảo hành</a></p>
+          <p><a href="#">Chính sách đổi trả 1-1</a></p>
+          <p><a href="#">Hướng dẫn mua trả góp</a></p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 ABA Mobile. All rights reserved.</p>
+      </div>
+    </footer>
+  </body>
+</html>

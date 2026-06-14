@@ -1,0 +1,155 @@
+/* =========================================
+   CSS DÀNH RIÊNG CHO TRANG ĐIỆN THOẠI
+========================================= */
+
+/* 1. Thanh điều hướng Breadcrumb */
+.breadcrumb {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #666;
+}
+.breadcrumb a {
+  color: #f12a27;
+  text-decoration: none;
+}
+.breadcrumb span {
+  font-weight: bold;
+  color: #333;
+}
+
+/* 2. Chia layout thành 2 cột: Cột bộ lọc (250px) và Cột sản phẩm */
+.category-layout {
+  display: flex;
+  gap: 30px;
+}
+
+/* --- CỘT TRÁI: SIDEBAR BỘ LỌC --- */
+/* --- Khung viền và nền của cả bộ lọc --- */
+.sidebar-filter {
+  background-color: #161b22; /* Màu nền tối, nổi bật nhẹ so với nền đen hoàn toàn */
+  border: 1px solid #30363d; /* Đường viền xám mỏng giúp phân tách không gian */
+  border-radius: 8px; /* Bo góc mềm mại */
+  padding: 20px;
+  color: #c9d1d9; /* Màu chữ xám nhạt để không bị chói mắt */
+  width: 280px; /* 1. Kéo khung to ra (bạn có thể tăng/giảm số này tùy ý) */
+  flex-shrink: 0; /* 2. Giữ cố định chiều rộng, không bị bóp méo khi thu nhỏ màn hình */
+  height: fit-content; /* 3. Chiều cao chỉ ôm vừa vặn nội dung bên trong */
+  align-self: flex-start;
+}
+
+/* --- Tiêu đề chính (BỘ LỌC SẢN PHẨM) --- */
+.sidebar-filter .filter-title {
+  color: #ffffff; /* Tiêu đề màu trắng sáng */
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #30363d; /* Đường gạch dưới để phân chia khu vực */
+}
+
+/* --- Từng nhóm lọc (Thương hiệu, Mức giá) --- */
+.filter-group {
+  margin-bottom: 24px;
+}
+
+.filter-group h4 {
+  color: #ffffff; /* Tiêu đề phụ màu trắng */
+  font-size: 14px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+/* --- Các dòng lựa chọn (Label) --- */
+.filter-group label {
+  display: flex; /* Căn chỉnh checkbox và chữ thẳng hàng ngang */
+  align-items: center;
+  gap: 8px; /* Khoảng cách giữa ô tick và chữ */
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.filter-group label:hover {
+  color: #ffffff; /* Sáng chữ lên khi di chuột vào */
+}
+
+/* --- Nút tick Checkbox và Radio --- */
+.filter-group input[type="checkbox"],
+.filter-group input[type="radio"] {
+  accent-color: #00a8ff; /* Đổi màu ô tick sang màu xanh dương đồng bộ với web */
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* --- Nút "Áp dụng bộ lọc" --- */
+.btn-filter {
+  width: 100%; /* Nút trải dài toàn bộ chiều ngang */
+  background-color: transparent;
+  color: #00a8ff; /* Chữ màu xanh */
+  border: 1px solid #00a8ff; /* Viền màu xanh */
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 5px;
+}
+
+.btn-filter:hover {
+  background-color: #00a8ff; /* Khi hover thì nút đặc màu xanh */
+  color: #ffffff; /* Chữ chuyển thành trắng */
+  box-shadow: 0 4px 10px rgba(0, 168, 255, 0.3); /* Phát sáng nhẹ */
+}
+.category-header h1 {
+  font-size: 22px;
+}
+
+.sort-box {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+}
+
+/* Ép lưới sản phẩm ở trang này hiển thị 3 cột (Vì đã mất 250px cho Sidebar bên trái) */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* --- PHÂN TRANG (PAGINATION) --- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.page-link {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid #ddd;
+  color: #333;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: 0.3s;
+}
+
+.page-link:hover {
+  background-color: #f12a27;
+  color: white;
+  border-color: #f12a27;
+}
+
+.page-link.active {
+  background-color: #f12a27;
+  color: white;
+  border-color: #f12a27;
+  font-weight: bold;
+}
