@@ -21,6 +21,10 @@
 .category-layout {
   display: flex;
   gap: 30px;
+  justify-content: center;
+}
+.category-main {
+  width: 820px; /* vừa đúng 3 card */
 }
 
 /* --- CỘT TRÁI: SIDEBAR BỘ LỌC --- */
@@ -106,6 +110,7 @@
 }
 .category-header h1 {
   font-size: 22px;
+  margin: 0;
 }
 
 .sort-box {
@@ -152,4 +157,16 @@
   color: white;
   border-color: #f12a27;
   font-weight: bold;
+}
+.product-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Trải dài bằng chiều cao của thẻ cao nhất trong hàng */
+}
+
+/* Tìm class nút thêm vào giỏ hàng của bạn và thêm dòng này */
+.btn-add-cart {
+  margin-top: auto;
+  align-self: center;
+  width: 85%; /* Ép nút luôn nằm sát đáy card */
 }
