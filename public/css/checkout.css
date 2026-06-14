@@ -1,60 +1,137 @@
 :root {
-    --bg: #f0f4f8;
-    --bg2: #ffffff;
-    --bg3: #e8f0fe;
-    --accent: #1a73e8;
-    --accent2: #0d47a1;
-    --text: #1a1a2e;
-    --muted: #6b7280;
-    --border: rgba(0, 0, 0, 0.08);
-    --green: #27ae60;
+    --bg: #0b0f19;
+    --bg2: #121826;
+    --bg3: #1a2235;
+    --accent: #00a8ff;
+    --accent2: #007bff;
+    --text: #e2e8f0;
+    --muted: #cbd5e1;
+    --border: rgba(255, 255, 255, 0.07);
+    --green: #00a8ff;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: var(--bg); color: var(--text); font-family: "Nunito", sans-serif; min-height: 100vh; }
-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
-.logo { font-family: "Rajdhani", sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--text); text-decoration: none; }
-.logo span { color: var(--accent); }
-.steps { display: flex; align-items: center; justify-content: center; gap: 0; padding: 2rem 1rem 0; }
-.step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.step-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; font-family: "Rajdhani", sans-serif; border: 2px solid var(--border); color: var(--muted); background: var(--bg3); }
-.step.done .step-dot { background: var(--green); border-color: var(--green); color: white; }
-.step.active .step-dot { background: var(--accent); border-color: var(--accent); color: white; }
-.step-label { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
-.step.active .step-label { color: var(--text); }
-.step-line { width: 80px; height: 2px; background: var(--border); margin-bottom: 20px; }
-.step-line.done { background: var(--green); }
-main { max-width: 1000px; margin: 2.5rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 380px; gap: 2rem; align-items: start; }
-@media (max-width: 768px) { main { grid-template-columns: 1fr; } }
-.form-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; animation: fadeIn 0.4s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-.form-section-title { font-family: "Rajdhani", sans-serif; font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); }
-.form-group { margin-bottom: 1.2rem; }
-label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.4rem; }
-input[type="text"], input[type="email"], input[type="tel"], textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 0.75rem 1rem; font-family: "Nunito", sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
-input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12); }
-input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.6; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.payment-options { display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 1.2rem; }
-.payment-option { display: flex; align-items: center; gap: 0.8rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; cursor: pointer; transition: border-color 0.2s; }
-.payment-option:has(input:checked) { border-color: var(--accent); background: rgba(26, 115, 232, 0.06); }
-.payment-option input { accent-color: var(--accent); }
-.pay-icon { font-size: 1.3rem; }
-.pay-label { font-size: 0.9rem; font-weight: 600; }
-.pay-sub { font-size: 0.75rem; color: var(--muted); }
-.order-summary { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; animation: fadeIn 0.5s ease; position: sticky; top: 84px; }
-.summary-title { font-family: "Rajdhani", sans-serif; font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text); margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); }
-.order-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
-.order-item:last-child { border-bottom: none; }
-.order-item img { width: 48px; height: 48px; object-fit: contain; border-radius: 8px; background: var(--bg3); padding: 4px; }
-.order-item-info { flex: 1; }
-.order-item-name { font-size: 0.85rem; font-weight: 600; }
-.order-item-qty { font-size: 0.75rem; color: var(--muted); }
-.order-item-price { font-family: "Rajdhani", sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--accent); }
-.order-divider { border: none; border-top: 1px solid var(--border); margin: 0.8rem 0; }
-.order-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.25rem 0; color: var(--muted); }
-.order-row.total { color: var(--text); font-weight: 700; font-size: 1rem; margin-top: 0.4rem; }
-.order-row.total span:last-child { font-family: "Rajdhani", sans-serif; font-size: 1.4rem; color: var(--accent); }
-.btn-order { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; padding: 1rem; border-radius: 12px; font-family: "Rajdhani", sans-serif; font-size: 1.15rem; font-weight: 700; cursor: pointer; margin-top: 1.2rem; transition: opacity 0.2s, transform 0.15s; }
-.btn-order:hover { opacity: 0.9; transform: translateY(-1px); }
-.secure-note { display: flex; align-items: center; justify-content: center; gap: 0.4rem; color: var(--muted); font-size: 0.75rem; margin-top: 0.8rem; }
-.empty-warning { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.9rem; }
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 100vh;
+}
+
+header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-family: Arial, sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.logo span {
+    color: var(--accent);
+}
+
+.steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 2rem 1rem 0;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.step-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 2px solid var(--border);
+    color: var(--muted);
+    background: var(--bg3);
+}
+
+.step.done .step-dot {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+}
+
+.step.active .step-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+.step-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.step.active .step-label {
+    color: var(--text);
+}
+
+.step-line {
+    width: 80px;
+    height: 2px;
+    background: var(--border);
+    margin-bottom: 20px;
+}
+
+.step-line.done {
+    background: var(--green);
+}
+
+main {
+    max-width: 1000px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn
