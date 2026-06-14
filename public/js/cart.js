@@ -134,3 +134,7 @@ function submitOrder(event) {
   localStorage.removeItem("gio_hang");
   window.location.href = "success.html";
 }
+document.addEventListener("DOMContentLoaded", () => {
+    updateCartBadge();
+    hienThiGio();
+});
