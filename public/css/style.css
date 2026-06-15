@@ -164,7 +164,6 @@ body {
   opacity: 0.9;
   transform: scale(1.03);
 }
-
 /* =========================================
    3. HERO SECTION (BANNER TỐI ƯU DARK MODE)
 ========================================= */
@@ -560,4 +559,89 @@ footer {
   .footer-content {
     grid-template-columns: 1fr;
   }
+}
+/* Đảm bảo class khớp chính xác */
+.search-form {
+  display: flex !important;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 30px;
+  padding: 6px 15px;
+  width: 250px;
+  transition: all 0.4s ease;
+  position: relative;
+}
+
+.search-input {
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 5px 10px;
+  width: 100%;
+  outline: none;
+}
+
+.search-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #00a8ff;
+  font-size: 16px;
+}
+.search-results {
+  display: none;
+  position: absolute;
+  top: 52px;
+  left: 0;
+  width: 100%;
+  background: #1a2235;
+  border: 1px solid #2d3748;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 9999;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  color: #ffffff;
+  text-decoration: none;
+  border-bottom: 1px solid #2d3748;
+}
+
+.search-item:hover {
+  background: #121826;
+}
+
+.search-item img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 8px;
+}
+
+.search-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.search-item span {
+  font-size: 14px;
+  color: #e2e8f0;
+}
+
+.search-item strong {
+  font-size: 13px;
+  color: #00a8ff;
+}
+
+.search-empty {
+  padding: 12px;
+  color: #cbd5e1;
+  font-size: 14px;
 }

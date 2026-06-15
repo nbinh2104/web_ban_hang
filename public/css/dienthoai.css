@@ -298,3 +298,20 @@
     grid-template-columns: 1fr;
   }
 }
+.btn-clear-filter {
+  display: block;
+  margin-top: 12px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+  text-decoration: none;
+  transition: 0.25s;
+}
+
+.btn-clear-filter:hover {
+  color: #00a8ff;
+}
+
+.sort-form {
+  margin: 0;
+}
