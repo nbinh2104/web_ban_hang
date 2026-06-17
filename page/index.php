@@ -39,31 +39,6 @@ if ($keyword != '') {
     <title>ABA Mobile</title>
 
     <link rel="stylesheet" href="../public/css/style.css?v=<?= time(); ?>">
-
-    <style>
-        .product-card {
-            display: flex !important;
-            flex-direction: column !important;
-            height: 100% !important;
-        }
-
-        .card-link {
-            text-decoration: none !important;
-            display: flex !important;
-            flex-direction: column !important;
-            flex-grow: 1 !important;
-        }
-
-        .price-group,
-        .product-price {
-            margin-top: auto !important;
-            margin-bottom: 15px !important;
-        }
-
-        .btn-add-cart {
-            margin-top: 0 !important;
-        }
-    </style>
 </head>
 
 <body>
@@ -104,9 +79,9 @@ if ($keyword != '') {
                 <div id="search-results" class="search-results"></div>
             </form>
 
-            <a href="cart.html" class="btn-cart-modern">
+            <a href="cart.php" class="btn-cart-modern">
                 🛒 Giỏ hàng
-                <span id="cart-badge" style="display: none">0</span>
+                <span id="cart-badge" class="cart-badge-hidden">0</span>
             </a>
 
             <a href="#" class="icon-action" title="Tài khoản">👤</a>
@@ -163,9 +138,7 @@ if ($keyword != '') {
         </div>
     </section>
 
-    <br />
-
-    <h2 class="section-title" style="margin-top: 0">
+    <h2 class="section-title home-section-title">
         <?php if ($keyword != ''): ?>
             KẾT QUẢ TÌM KIẾM: "<?= htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8') ?>"
         <?php else: ?>
@@ -223,9 +196,9 @@ if ($keyword != '') {
             }
         } else {
             if ($keyword != '') {
-                echo "<p style='color: #fff; width: 100%; text-align: center;'>Không tìm thấy sản phẩm phù hợp với từ khóa: <strong>" . htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8') . "</strong></p>";
+                echo "<p class='no-products-message'>Không tìm thấy sản phẩm phù hợp với từ khóa: <strong>" . htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8') . "</strong></p>";
             } else {
-                echo "<p style='color: #fff; width: 100%; text-align: center;'>Hệ thống đang cập nhật sản phẩm mới...</p>";
+                echo "<p class='no-products-message'>Hệ thống đang cập nhật sản phẩm mới...</p>";
             }
         }
         ?>

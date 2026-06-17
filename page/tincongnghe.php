@@ -1,350 +1,309 @@
+<?php
+include('../config/database.php');
+
+mysqli_set_charset($conn, 'utf8mb4');
+
+function h($value) {
+    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+}
+
+function timeLabel($created_at) {
+    if (empty($created_at)) {
+        return 'Mới đây';
+    }
+
+    $timestamp = strtotime($created_at);
+    if (!$timestamp) {
+        return 'Mới đây';
+    }
+
+    $diff = time() - $timestamp;
+
+    if ($diff < 3600) {
+        return 'Mới đây';
+    }
+
+    if ($diff < 86400) {
+        return floor($diff / 3600) . ' giờ trước';
+    }
+
+    if ($diff < 604800) {
+        return floor($diff / 86400) . ' ngày trước';
+    }
+
+    return date('d/m/Y', $timestamp);
+}
+
+function newsLink($slug) {
+    // Chưa làm trang chi tiết tin, nên để # để tránh lỗi Not Found.
+    // Khi làm trang chi tiết, đổi thành: return 'chitiettintuc.php?slug=' . urlencode($slug);
+    return '#';
+}
+
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 3;
+$offset = ($page - 1) * $per_page;
+
+$featured = null;
+$featured_id = 0;
+
+$featured_sql = "SELECT id, title, slug, thumbnail, summary, author, created_at
+                 FROM tech_news
+                 WHERE status = 1
+                 ORDER BY created_at DESC, id DESC
+                 LIMIT 1";
+
+$featured_result = mysqli_query($conn, $featured_sql);
+if ($featured_result && mysqli_num_rows($featured_result) > 0) {
+    $featured = mysqli_fetch_assoc($featured_result);
+    $featured_id = (int)$featured['id'];
+}
+
+$total_sql = "SELECT COUNT(*) AS total
+              FROM tech_news
+              WHERE status = 1 AND id <> $featured_id";
+$total_result = mysqli_query($conn, $total_sql);
+$total_row = $total_result ? mysqli_fetch_assoc($total_result) : ['total' => 0];
+$total_news = (int)$total_row['total'];
+$total_pages = max(1, (int)ceil($total_news / $per_page));
+
+$news_list = [];
+$news_sql = "SELECT id, title, slug, thumbnail, summary, author, created_at
+             FROM tech_news
+             WHERE status = 1 AND id <> $featured_id
+             ORDER BY created_at DESC, id DESC
+             LIMIT $per_page OFFSET $offset";
+$news_result = mysqli_query($conn, $news_sql);
+
+if ($news_result) {
+    while ($row = mysqli_fetch_assoc($news_result)) {
+        $news_list[] = $row;
+    }
+}
+
+$trending_news = [];
+$trending_sql = "SELECT id, title, slug
+                 FROM tech_news
+                 WHERE status = 1
+                 ORDER BY id DESC
+                 LIMIT 4";
+$trending_result = mysqli_query($conn, $trending_sql);
+
+if ($trending_result) {
+    while ($row = mysqli_fetch_assoc($trending_result)) {
+        $trending_news[] = $row;
+    }
+}
+?>
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="../public/css/style.css" />
-    <link rel="stylesheet" href="../public/css/tincongnghe.css" />
-    <title>Tin Công Nghệ - ABA Mobile</title>
-  </head>
-  <body>
-    <header class="modern-header">
-      <div class="container header-inner">
-        <div class="header-left">
-          <a href="tel:1900xxxx" class="btn-phone-icon"> 📞 </a>
-          <a href="index.php" class="modern-logo">
-            ABA Mobile<span class="dot">.</span>
-          </a>
-        </div>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../public/css/style.css?v=<?php echo time(); ?>" />
+  <link rel="stylesheet" href="../public/css/tincongnghe.css?v=<?php echo time(); ?>" />
+  <title>Tin Công Nghệ - ABA Mobile</title>
+</head>
 
-        <nav class="header-center">
-          <ul class="modern-menu">
-            <li><a href="index.php" class="active">Trang chủ</a></li>
-            <li><a href="dienthoai.php">Điện thoại</a></li>
-            <li><a href="suachua.php">Sửa chữa</a></li>
-            <li><a href="tincongnghe.php">Tin công nghệ</a></li>
-          </ul>
-        </nav>
+<body>
+  <header class="modern-header">
+    <div class="container header-inner">
+      <div class="header-left">
+        <a href="tel:1900xxxx" class="btn-phone-icon">📞</a>
 
-        <div class="header-right">
-          <a href="#" class="icon-action" title="Tìm kiếm">🔍</a>
-          <a href="#" class="icon-action" title="Tài khoản">👤</a>
-          <a href="cart.html" class="btn-cart-modern">
-            🛒 Giỏ hàng
-            <span id="cart-badge" style="display: none">0</span>
-          </a>
-        </div>
-      </div>
-    </header>
-
-    <main class="container" style="padding: 30px 0; min-height: 600px">
-      <div class="breadcrumb">
-        <a href="index.html">Trang chủ</a> &raquo;
-        <span style="color: #00a8ff">Tin công nghệ</span>
+        <a href="index.php" class="modern-logo">
+          ABA Mobile<span class="dot">.</span>
+        </a>
       </div>
 
-      <h1
-        class="page-title"
-        style="
-          color: #fff;
-          margin-bottom: 25px;
-          border-bottom: 2px solid #00a8ff;
-          display: inline-block;
-          padding-bottom: 5px;
-        "
-      >
-        TIN TỨC 24H
-      </h1>
+      <nav class="header-center">
+        <ul class="modern-menu">
+          <li><a href="index.php">Trang chủ</a></li>
+          <li><a href="dienthoai.php">Điện thoại</a></li>
+          <li><a href="suachua.php">Sửa chữa</a></li>
+          <li><a href="tincongnghe.php" class="active">Tin công nghệ</a></li>
+        </ul>
+      </nav>
 
-      <div class="news-layout">
-        <div class="news-main">
+      <div class="header-right">
+        <form action="dienthoai.php" method="GET" class="search-form" autocomplete="off">
+          <input
+            type="text"
+            name="q"
+            placeholder="Tìm điện thoại..."
+            class="search-input"
+            value="<?php echo h($_GET['q'] ?? ''); ?>"
+          >
+          <button type="submit" class="search-btn">🔍</button>
+          <div id="search-results" class="search-results"></div>
+        </form>
+
+        <a href="cart.php" class="btn-cart-modern">
+          🛒 Giỏ hàng
+          <span id="cart-badge" class="cart-badge">0</span>
+        </a>
+
+        <a href="#" class="icon-action" title="Tài khoản">👤</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container news-page">
+    <div class="news-breadcrumb">
+      <a href="index.php">Trang chủ</a> &raquo;
+      <span>Tin công nghệ</span>
+    </div>
+
+    <h1 class="news-page-title">TIN TỨC 24H</h1>
+
+    <div class="news-layout">
+      <div class="news-main">
+        <?php if ($featured): ?>
           <article class="featured-news">
-            <a href="#"
-              ><img
-                src="https://placehold.co/800x400/1a2235/e2e8f0?text=iPhone+17+Pro+Max"
-                alt="iPhone 17 Pro Max"
-            /></a>
+            <a href="<?php echo h(newsLink($featured['slug'])); ?>" class="featured-img">
+              <img
+                src="<?php echo h($featured['thumbnail']); ?>"
+                alt="<?php echo h($featured['title']); ?>"
+                onerror="this.style.display='none'; this.parentElement.classList.add('no-img');"
+              />
+            </a>
+
             <div class="news-content">
               <h2>
-                <a href="#"
-                  >Rò rỉ thiết kế iPhone 17 Pro Max: Cụm camera hoàn toàn mới,
-                  viền mỏng kỷ lục?</a
-                >
+                <a href="<?php echo h(newsLink($featured['slug'])); ?>">
+                  <?php echo h($featured['title']); ?>
+                </a>
               </h2>
-              <div class="news-meta">Mới đây &bull; 1.2K lượt xem</div>
-              <p>
-                Theo những thông tin rò rỉ mới nhất từ chuỗi cung ứng, thế hệ
-                iPhone tiếp theo của Apple dự kiến sẽ mang đến một cuộc cách
-                mạng về thiết kế với cụm camera được tinh chỉnh lại và màn hình
-                tràn viền siêu mỏng, hứa hẹn tạo nên cơn sốt mới trong giới công
-                nghệ.
-              </p>
+
+              <div class="news-meta">
+                <?php echo h(timeLabel($featured['created_at'])); ?> &bull; <?php echo h($featured['author'] ?? 'ABA Mobile'); ?>
+              </div>
+
+              <p><?php echo h($featured['summary']); ?></p>
             </div>
           </article>
+        <?php else: ?>
+          <div class="empty-news">Chưa có bài viết công nghệ nào.</div>
+        <?php endif; ?>
 
-          <div class="news-list">
-            <article class="news-card">
-              <img
-                src="https://placehold.co/300x200/1a2235/e2e8f0?text=Galaxy+S25"
-                alt="Galaxy S25"
-              />
-              <div class="news-info">
-                <h3>
-                  <a href="#"
-                    >Samsung Galaxy S25 chính thức lộ diện sức mạnh chip
-                    Snapdragon 8 Gen 4</a
-                  >
-                </h3>
-                <div class="news-meta">2 giờ trước</div>
-                <p>
-                  Bản thử nghiệm đầu tiên của Galaxy S25 vừa lộ điểm hiệu năng
-                  cực khủng, vượt xa người tiền nhiệm.
-                </p>
-              </div>
-            </article>
+        <div class="news-list">
+          <?php if (!empty($news_list)): ?>
+            <?php foreach ($news_list as $news): ?>
+              <article class="news-card">
+                <a href="<?php echo h(newsLink($news['slug'])); ?>" class="news-thumb">
+                  <img
+                    src="<?php echo h($news['thumbnail']); ?>"
+                    alt="<?php echo h($news['title']); ?>"
+                    onerror="this.style.display='none'; this.parentElement.classList.add('no-img');"
+                  />
+                </a>
 
-            <article class="news-card">
-              <img
-                src="https://placehold.co/300x200/1a2235/e2e8f0?text=Tri-Fold+Samsung"
-                alt="Samsung Tri-Fold"
-              />
-              <div class="news-info">
-                <h3>
-                  <a href="#"
-                    >Điện thoại gập 3 (Tri-Fold) của Samsung sẽ ra mắt vào cuối
-                    năm nay?</a
-                  >
-                </h3>
-                <div class="news-meta">5 giờ trước</div>
-                <p>
-                  Không để đối thủ qua mặt, Samsung đang gấp rút hoàn thiện
-                  nguyên mẫu điện thoại gập làm 3 với màn hình lên tới 10 inch.
-                </p>
-              </div>
-            </article>
+                <div class="news-info">
+                  <h3>
+                    <a href="<?php echo h(newsLink($news['slug'])); ?>">
+                      <?php echo h($news['title']); ?>
+                    </a>
+                  </h3>
 
-            <article class="news-card">
-              <img
-                src="https://placehold.co/300x200/1a2235/e2e8f0?text=Gia+Kinh+Lung"
-                alt="Giá kính lưng"
-              />
-              <div class="news-info">
-                <h3>
-                  <a href="#"
-                    >Bảng giá linh kiện thay thế: Mặt kính lưng các dòng
-                    Flagship hiện nay</a
-                  >
-                </h3>
-                <div class="news-meta">Hôm qua</div>
-                <p>
-                  Cập nhật chi phí thay thế mặt kính sau cho các dòng điện thoại
-                  cao cấp như iPhone 16 series và Galaxy S24 Ultra.
-                </p>
-              </div>
-            </article>
-          </div>
+                  <div class="news-meta">
+                    <?php echo h(timeLabel($news['created_at'])); ?> &bull; <?php echo h($news['author'] ?? 'ABA Mobile'); ?>
+                  </div>
 
+                  <p><?php echo h($news['summary']); ?></p>
+                </div>
+              </article>
+            <?php endforeach; ?>
+          <?php endif; ?>
+        </div>
+
+        <?php if ($total_pages > 1): ?>
           <div class="pagination">
-            <a
-              href="#"
-              class="page-link active"
-              style="
-                background-color: #00a8ff;
-                color: #fff;
-                border-color: #00a8ff;
-              "
-              >1</a
-            >
-            <a
-              href="#"
-              class="page-link"
-              style="
-                background-color: #121826;
-                color: #fff;
-                border-color: #1f2937;
-              "
-              >2</a
-            >
-            <a
-              href="#"
-              class="page-link"
-              style="
-                background-color: #121826;
-                color: #fff;
-                border-color: #1f2937;
-              "
-              >3</a
-            >
-            <a
-              href="#"
-              class="page-link"
-              style="
-                background-color: #121826;
-                color: #fff;
-                border-color: #1f2937;
-              "
-              >Sau &raquo;</a
-            >
+            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+              <a href="tincongnghe.php?page=<?php echo $i; ?>" class="page-link <?php echo ($i === $page) ? 'active' : ''; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
           </div>
-        </div>
-
-        <aside class="news-sidebar">
-          <div class="sidebar-widget">
-            <h3>Tin Đọc Nhiều Nhất</h3>
-            <ul class="trending-list">
-              <li>
-                <span class="rank">1</span
-                ><a href="#">Hướng dẫn khắc phục iPhone bị nóng máy khi sạc.</a>
-              </li>
-              <li>
-                <span class="rank">2</span
-                ><a href="#"
-                  >Top 5 điện thoại chơi game tốt nhất dưới 10 triệu.</a
-                >
-              </li>
-              <li>
-                <span class="rank">3</span
-                ><a href="#"
-                  >So sánh chi tiết camera iPhone 15 và Galaxy S24.</a
-                >
-              </li>
-              <li>
-                <span class="rank">4</span
-                ><a href="#">Khi nào Apple chính thức ra mắt iOS 18?</a>
-              </li>
-            </ul>
-          </div>
-          <div
-            class="sidebar-widget promo-banner"
-            style="padding: 0; overflow: hidden"
-          >
-            <img
-              src="https://placehold.co/300x400/00a8ff/ffffff?text=Uu+Dai+Dac+Biet"
-              alt="Khuyến mãi"
-              style="width: 100%; display: block"
-            />
-          </div>
-        </aside>
+        <?php endif; ?>
       </div>
-    </main>
 
-    <footer>
-      <div
-        class="container footer-content"
-        style="
-          padding: 40px 0;
-          color: #fff;
-          display: flex;
-          justify-content: space-between;
-          flex-wrap: wrap;
-        "
-      >
-        <div
-          class="footer-col"
-          style="flex: 1; min-width: 250px; margin-bottom: 20px"
-        >
-          <h3
-            style="
-              color: #fff;
-              margin-bottom: 15px;
-              border-bottom: 2px solid #00a8ff;
-              display: inline-block;
-              padding-bottom: 5px;
-            "
-          >
-            ABA MOBILE
-          </h3>
-          <p style="color: #cbd5e1; line-height: 1.6; padding-right: 20px">
-            Hệ thống bán lẻ điện thoại di động chính hãng, uy tín hàng đầu với
-            giá cả cạnh tranh.
-          </p>
-        </div>
-        <div
-          class="footer-col"
-          style="flex: 1; min-width: 250px; margin-bottom: 20px"
-        >
-          <h3
-            style="
-              color: #fff;
-              margin-bottom: 15px;
-              border-bottom: 2px solid #00a8ff;
-              display: inline-block;
-              padding-bottom: 5px;
-            "
-          >
-            THÔNG TIN LIÊN HỆ
-          </h3>
-          <p style="color: #cbd5e1; margin-bottom: 10px">
-            📍 Địa chỉ: Hà Nội, Việt Nam
-          </p>
-          <p style="color: #cbd5e1; margin-bottom: 10px">
-            📞 Điện thoại: 1900 xxxx
-          </p>
-          <p style="color: #cbd5e1; margin-bottom: 10px">
-            ✉️ Email: cskh@abamobile.com
-          </p>
-        </div>
-        <div
-          class="footer-col"
-          style="flex: 1; min-width: 250px; margin-bottom: 20px"
-        >
-          <h3
-            style="
-              color: #fff;
-              margin-bottom: 15px;
-              border-bottom: 2px solid #00a8ff;
-              display: inline-block;
-              padding-bottom: 5px;
-            "
-          >
-            CHÍNH SÁCH
-          </h3>
-          <ul style="list-style: none; padding: 0">
-            <li style="margin-bottom: 10px">
-              <a href="#" style="color: #cbd5e1; text-decoration: none"
-                >Chính sách bảo hành</a
-              >
-            </li>
-            <li style="margin-bottom: 10px">
-              <a href="#" style="color: #cbd5e1; text-decoration: none"
-                >Chính sách đổi trả 1-1</a
-              >
-            </li>
-            <li style="margin-bottom: 10px">
-              <a href="#" style="color: #cbd5e1; text-decoration: none"
-                >Hướng dẫn mua trả góp</a
-              >
-            </li>
+      <aside class="news-sidebar">
+        <div class="sidebar-widget">
+          <h3>Tin Đọc Nhiều Nhất</h3>
+
+          <ul class="trending-list">
+            <?php if (!empty($trending_news)): ?>
+              <?php foreach ($trending_news as $index => $item): ?>
+                <li>
+                  <span class="rank"><?php echo $index + 1; ?></span>
+                  <a href="<?php echo h(newsLink($item['slug'])); ?>">
+                    <?php echo h($item['title']); ?>
+                  </a>
+                </li>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <li>Chưa có tin đọc nhiều.</li>
+            <?php endif; ?>
           </ul>
         </div>
-      </div>
-      <div
-        style="
-          background-color: #0b0f19;
-          padding: 15px 0;
-          text-align: center;
-          border-top: 1px solid #1f2937;
-        "
-      >
-        <p style="color: #64748b; font-size: 14px; margin: 0">
-          © 2026 ABA Mobile. All rights reserved.
+
+        <div class="sidebar-widget promo-banner">
+          <div class="promo-content">
+            <span>Ưu đãi đặc biệt</span>
+            <strong>Giảm giá phụ kiện</strong>
+            <p>Khi sửa chữa hoặc mua điện thoại tại ABA Mobile</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div class="footer-col">
+        <h3>ABA MOBILE</h3>
+        <p>
+          Hệ thống bán lẻ điện thoại di động chính hãng, uy tín hàng đầu với giá cả cạnh tranh.
         </p>
       </div>
-    </footer>
 
-    <div class="floating-contact">
-      <a href="tel:1900xxxx" class="contact-item"
-        ><div class="icon-circle">📞</div>
-        <span>Gọi ngay</span></a
-      >
-      <a href="https://zalo.me/xxxx" target="_blank" class="contact-item"
-        ><div class="icon-circle">💬</div>
-        <span>Zalo OA</span></a
-      >
-      <a href="https://m.me/xxxx" target="_blank" class="contact-item"
-        ><div class="icon-circle">⚡</div>
-        <span>Messenger</span></a
-      >
+      <div class="footer-col">
+        <h3>THÔNG TIN LIÊN HỆ</h3>
+        <p>📍 Địa chỉ: Hà Nội, Việt Nam</p>
+        <p>📞 Điện thoại: 1900 xxxx</p>
+        <p>✉️ Email: cskh@abamobile.com</p>
+      </div>
+
+      <div class="footer-col">
+        <h3>CHÍNH SÁCH</h3>
+        <ul>
+          <li><a href="#">Chính sách bảo hành</a></li>
+          <li><a href="#">Chính sách đổi trả 1-1</a></li>
+          <li><a href="#">Hướng dẫn mua trả góp</a></li>
+        </ul>
+      </div>
     </div>
-  </body>
+
+    <div class="footer-bottom">
+      <p>© 2026 ABA Mobile. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="floating-contact">
+    <a href="tel:1900xxxx" class="contact-item">
+      <div class="icon-circle">📞</div>
+      <span>Gọi ngay</span>
+    </a>
+
+    <a href="https://zalo.me/xxxx" target="_blank" class="contact-item">
+      <div class="icon-circle">💬</div>
+      <span>Zalo OA</span>
+    </a>
+
+    <a href="https://m.me/xxxx" target="_blank" class="contact-item">
+      <div class="icon-circle">⚡</div>
+      <span>Messenger</span>
+    </a>
+  </div>
+</body>
 </html>

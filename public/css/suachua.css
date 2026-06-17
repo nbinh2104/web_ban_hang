@@ -1,39 +1,45 @@
 /* =========================================
-   TRANG SỬA CHỮA ĐIỆN THOẠI
+   TRANG SỬA CHỮA ĐIỆN THOẠI - NỀN TRẮNG
 ========================================= */
 
-.cart-badge {
+.cart-badge,
+.cart-badge-hidden {
   display: none;
 }
 
 .repair-page {
   padding: 30px 0;
   min-height: 600px;
+  background-color: #ffffff;
 }
 
+/* Breadcrumb */
 .repair-breadcrumb {
   margin-bottom: 30px;
   font-size: 14px;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .repair-breadcrumb a {
-  color: #cbd5e1;
+  color: #00a8ff;
   text-decoration: none;
+  font-weight: 600;
 }
 
 .repair-breadcrumb a:hover {
-  color: #00a8ff;
+  text-decoration: underline;
 }
 
 .repair-breadcrumb span {
-  color: #00a8ff;
+  color: #0f172a;
+  font-weight: 600;
 }
 
+/* Tiêu đề */
 .repair-page-title,
 .section-title,
 .repair-list-title {
-  color: #ffffff;
+  color: #0f172a;
   text-align: center;
   font-weight: 800;
   text-transform: uppercase;
@@ -48,10 +54,12 @@
 .repair-list-title {
   font-size: 28px;
   margin-bottom: 28px;
+  font-family: "Times New Roman", Times, serif;
 }
 
 .empty-message {
-  color: #cbd5e1;
+  color: #64748b;
+  text-align: center;
 }
 
 /* =========================================
@@ -69,18 +77,19 @@
 }
 
 .service-card {
-  background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  border: 1px solid #243044;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 18px;
   padding: 24px;
   transition: 0.25s ease;
   min-height: 220px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .service-card:hover {
   transform: translateY(-6px);
   border-color: #00a8ff;
-  box-shadow: 0 14px 35px rgba(0, 168, 255, 0.15);
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.12);
 }
 
 .service-icon {
@@ -89,6 +98,7 @@
   border-radius: 16px;
   background: rgba(0, 168, 255, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #00a8ff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -97,19 +107,19 @@
 }
 
 .service-card h3 {
-  color: #ffffff;
+  color: #0f172a;
   font-size: 20px;
   margin-bottom: 12px;
 }
 
 .service-card p {
-  color: #cbd5e1;
+  color: #475569;
   line-height: 1.6;
   font-size: 15px;
 }
 
 /* =========================================
-   20 DỊCH VỤ SỬA CHỮA PHỔ BIẾN
+   DANH SÁCH DỊCH VỤ SỬA CHỮA
 ========================================= */
 
 .repair-list-section {
@@ -123,28 +133,28 @@
 }
 
 .repair-product-card {
-  background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  border: 1px solid #243044;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 18px;
   padding: 16px;
   min-height: 360px;
   display: flex;
   flex-direction: column;
   transition: 0.25s ease;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .repair-product-card:hover {
   transform: translateY(-6px);
   border-color: #00a8ff;
-  box-shadow: 0 14px 35px rgba(0, 168, 255, 0.18);
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.12);
 }
 
 .repair-product-img {
   width: 100%;
   height: 165px;
-  background: #0b0f19;
-  border: 1px solid #1f2937;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
   border-radius: 14px;
   overflow: hidden;
   display: flex;
@@ -164,7 +174,7 @@
 }
 
 .repair-product-name {
-  color: #ffffff;
+  color: #1e293b;
   font-size: 17px;
   line-height: 1.35;
   font-weight: 700;
@@ -173,7 +183,7 @@
 }
 
 .repair-product-price {
-  color: #38bdf8;
+  color: #00a8ff;
   font-size: 19px;
   font-weight: 800;
   margin-top: auto;
@@ -209,28 +219,36 @@
 
 .price-table-wrap {
   overflow-x: auto;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .repair-price-table {
   width: 100%;
   border-collapse: collapse;
-  background: #111827;
-  border: 1px solid #243044;
-  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
   overflow: hidden;
 }
 
 .repair-price-table thead tr {
-  background: #1f2937;
-  color: #ffffff;
+  background: #f1f5f9;
+  color: #0f172a;
 }
 
 .repair-price-table th,
 .repair-price-table td {
   padding: 14px;
-  border-top: 1px solid #243044;
+  border-top: 1px solid #e5e7eb;
   text-align: left;
-  color: #cbd5e1;
+  color: #475569;
+}
+
+.repair-price-table th {
+  color: #0f172a;
+  font-weight: 800;
 }
 
 .repair-price-table th:first-child,
@@ -245,12 +263,12 @@
 
 .repair-price-table .price-cell {
   color: #00a8ff;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .table-empty {
   text-align: center !important;
-  color: #cbd5e1;
+  color: #64748b;
 }
 
 /* =========================================
@@ -264,21 +282,21 @@
 .booking-box {
   max-width: 760px;
   margin: 0 auto;
-  background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  border: 1px solid #243044;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 22px;
   padding: 32px;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
 }
 
 .booking-box h2 {
-  color: #ffffff;
+  color: #0f172a;
   margin-bottom: 10px;
   font-size: 28px;
 }
 
 .booking-box p {
-  color: #cbd5e1;
+  color: #475569;
   margin-bottom: 20px;
   line-height: 1.6;
 }
@@ -293,13 +311,14 @@
 .booking-form select,
 .booking-form textarea {
   width: 100%;
-  background: #1a2235;
-  border: 1px solid #2d3748;
-  color: #ffffff;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  color: #0f172a;
   padding: 13px 15px;
   border-radius: 12px;
   outline: none;
   font-size: 15px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
 .booking-form input::placeholder,
@@ -328,15 +347,15 @@
 }
 
 .form-success {
-  background: #052e1a;
-  border: 1px solid #16a34a;
-  color: #bbf7d0;
+  background: #ecfdf5;
+  border: 1px solid #22c55e;
+  color: #166534;
 }
 
 .form-error {
-  background: #3b0d0d;
+  background: #fef2f2;
   border: 1px solid #ef4444;
-  color: #fecaca;
+  color: #991b1b;
 }
 
 .btn-submit {
@@ -362,11 +381,13 @@
 
 .site-footer {
   margin-top: 40px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
 }
 
 .footer-content {
   padding: 40px 0;
-  color: #ffffff;
+  color: #0f172a;
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -380,7 +401,7 @@
 }
 
 .footer-col h3 {
-  color: #ffffff;
+  color: #0f172a;
   margin-bottom: 15px;
   border-bottom: 2px solid #00a8ff;
   display: inline-block;
@@ -388,7 +409,7 @@
 }
 
 .footer-col p {
-  color: #cbd5e1;
+  color: #475569;
   line-height: 1.6;
   margin-bottom: 10px;
 }
@@ -403,7 +424,7 @@
 }
 
 .footer-col a {
-  color: #cbd5e1;
+  color: #475569;
   text-decoration: none;
 }
 
@@ -412,10 +433,10 @@
 }
 
 .footer-bottom {
-  background: #0b0f19;
+  background: #f8fafc;
   padding: 15px 0;
   text-align: center;
-  border-top: 1px solid #1f2937;
+  border-top: 1px solid #e5e7eb;
 }
 
 .footer-bottom p {

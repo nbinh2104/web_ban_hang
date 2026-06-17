@@ -189,9 +189,9 @@ if (!empty($params)) {
                 <div id="search-results" class="search-results"></div>
             </form>
 
-            <a href="cart.html" class="btn-cart-modern">
+            <a href="cart.php" class="btn-cart-modern">
                 🛒 Giỏ hàng
-                <span id="cart-badge" style="display: none;">0</span>
+                <span id="cart-badge" class="cart-badge-hidden">0</span>
             </a>
 
             <a href="#" class="icon-action" title="Tài khoản">👤</a>
@@ -314,7 +314,7 @@ if (!empty($params)) {
                     </h1>
 
                     <?php if (!empty($brands) || $price != '' || $q != ''): ?>
-                        <p style="color: #94a3b8; margin-top: 8px;">
+                        <p class="filter-note">
                             Đang hiển thị sản phẩm theo điều kiện đã chọn
                         </p>
                     <?php endif; ?>
@@ -361,8 +361,6 @@ if (!empty($params)) {
                     </select>
                 </form>
             </div>
-
-            <br>
 
             <div class="product-grid category-grid">
 

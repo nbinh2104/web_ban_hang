@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['repair_submit'])) {
     if (empty($errors)) {
         $service_id_insert = (int)$service_id;
 
-        $sql = "INSERT INTO repair_bookings 
+        $sql = "INSERT INTO repair_requests
                 (customer_name, phone, device_name, service_id, issue_description, status, created_at)
                 VALUES (?, ?, ?, ?, ?, 'pending', NOW())";
 
@@ -153,7 +153,7 @@ if ($result_repair_items) {
           <div id="search-results" class="search-results"></div>
         </form>
 
-        <a href="cart.html" class="btn-cart-modern">
+        <a href="cart.php" class="btn-cart-modern">
           🛒 Giỏ hàng
           <span id="cart-badge" class="cart-badge">0</span>
         </a>
