@@ -375,7 +375,8 @@ body {
 }
 
 /* =========================================
-   RESPONSIVE
+   RESPONSIVE SẠCH - TRANG GIỎ HÀNG
+   Mobile: bảng chuyển thành từng card sản phẩm
 ========================================= */
 
 @media (max-width: 900px) {
@@ -384,26 +385,160 @@ body {
     align-items: flex-start;
   }
 
-  .cart-table-wrap {
-    overflow-x: auto;
-  }
-
-  .cart-table {
-    min-width: 800px;
+  .cart-heading h1 {
+    font-size: 32px;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .cart-page {
-    padding: 30px 18px 60px;
+    padding: 24px 14px 55px;
+  }
+
+  .cart-heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 18px;
   }
 
   .cart-heading h1 {
-    font-size: 30px;
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  .cart-heading p {
+    font-size: 14px;
+  }
+
+  .btn-continue-top {
+    text-align: center;
+    width: 100%;
+  }
+
+  .cart-table-wrap {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .cart-table,
+  .cart-table tbody,
+  .cart-table tr,
+  .cart-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .cart-table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .cart-table thead {
+    display: none;
+  }
+
+  .cart-table tbody tr {
+    background: #ffffff;
+    border: 1px solid var(--cart-border);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+  }
+
+  .cart-table tbody tr:hover {
+    background: #ffffff;
+  }
+
+  .cart-table td {
+    padding: 10px 0;
+    border: none;
+  }
+
+  .td-product {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding-top: 0 !important;
+  }
+
+  .td-product img {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+  }
+
+  .td-product span {
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .td-price,
+  .td-qty,
+  .td-total,
+  .td-remove {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .td-price::before {
+    content: "Đơn giá";
+    color: var(--cart-muted);
+    font-weight: 700;
+  }
+
+  .td-qty::before {
+    content: "Số lượng";
+    color: var(--cart-muted);
+    font-weight: 700;
+  }
+
+  .td-total::before {
+    content: "Thành tiền";
+    color: var(--cart-muted);
+    font-weight: 700;
+  }
+
+  .td-total {
+    font-size: 15px;
+  }
+
+  .td-remove {
+    justify-content: flex-end !important;
+  }
+
+  .qty-control {
+    margin-left: auto;
+  }
+
+  .qty-control button {
+    width: 32px;
+    height: 34px;
+  }
+
+  .qty-control input {
+    width: 40px;
+  }
+
+  .btn-remove {
+    width: 36px;
+    height: 36px;
   }
 
   .cart-footer {
-    align-items: flex-start;
+    padding: 18px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .summary-total {
+    font-size: 26px;
   }
 
   .footer-actions {
@@ -414,6 +549,64 @@ body {
 
   .btn-back,
   .btn-checkout {
+    width: 100%;
     text-align: center;
+  }
+
+  .empty-cart {
+    background: #ffffff;
+    border: 1px solid var(--cart-border);
+    border-radius: 16px;
+    padding: 45px 16px;
+  }
+
+  .empty-icon {
+    font-size: 54px;
+  }
+
+  #toast {
+    width: calc(100% - 28px);
+    text-align: center;
+    bottom: 20px;
+  }
+}
+
+@media (max-width: 420px) {
+  .cart-page {
+    padding: 20px 12px 50px;
+  }
+
+  .cart-heading h1 {
+    font-size: 25px;
+  }
+
+  .cart-table tbody tr {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .td-product img {
+    width: 58px;
+    height: 58px;
+  }
+
+  .td-product span {
+    font-size: 13px;
+  }
+
+  .td-price,
+  .td-qty,
+  .td-total {
+    font-size: 13px;
+  }
+
+  .summary-total {
+    font-size: 24px;
+  }
+
+  .btn-back,
+  .btn-checkout {
+    font-size: 14px;
+    padding: 12px 16px;
   }
 }

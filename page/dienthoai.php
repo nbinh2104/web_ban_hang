@@ -3,9 +3,6 @@ include('../config/database.php');
 
 mysqli_set_charset($conn, "utf8mb4");
 
-/* ================================
-   LẤY DỮ LIỆU TỪ URL
-================================ */
 $q = isset($_GET['q']) ? trim($_GET['q']) : '';
 
 $brands = isset($_GET['brand']) ? $_GET['brand'] : [];
@@ -16,34 +13,31 @@ if (!is_array($brands)) {
 $price = isset($_GET['price']) ? $_GET['price'] : '';
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
 
-/* ================================
-   TẠO ĐIỀU KIỆN LỌC
-================================ */
 $where = [];
 $params = [];
 $types = "";
 
 /* Tìm kiếm theo tên sản phẩm */
-if ($q != '') {
-    $where[] = "name LIKE ?";
+if ($q !== '') {
+    $where[] = "p.name LIKE ?";
     $params[] = "%" . $q . "%";
     $types .= "s";
 }
 
-/* Lọc thương hiệu */
+/* Lọc thương hiệu theo tên */
 if (!empty($brands)) {
     $brandConditions = [];
 
     foreach ($brands as $brand) {
-        if ($brand == 'apple') {
-            $brandConditions[] = "(name LIKE ? OR name LIKE ?)";
+        if ($brand === 'apple') {
+            $brandConditions[] = "(p.name LIKE ? OR p.name LIKE ?)";
             $params[] = "%iPhone%";
             $params[] = "%Apple%";
             $types .= "ss";
         }
 
-        if ($brand == 'samsung') {
-            $brandConditions[] = "name LIKE ?";
+        if ($brand === 'samsung') {
+            $brandConditions[] = "p.name LIKE ?";
             $params[] = "%Samsung%";
             $types .= "s";
         }
@@ -54,18 +48,18 @@ if (!empty($brands)) {
     }
 }
 
-/* Lọc mức giá */
-if ($price == 'duoi-5-trieu') {
-    $where[] = "new_price < ?";
+/* Lọc mức giá theo giá bản dung lượng thấp nhất */
+if ($price === 'duoi-5-trieu') {
+    $where[] = "v.new_price < ?";
     $params[] = 5000000;
     $types .= "i";
-} elseif ($price == '5-15-trieu') {
-    $where[] = "new_price BETWEEN ? AND ?";
+} elseif ($price === '5-15-trieu') {
+    $where[] = "v.new_price BETWEEN ? AND ?";
     $params[] = 5000000;
     $params[] = 15000000;
     $types .= "ii";
-} elseif ($price == 'tren-15-trieu') {
-    $where[] = "new_price > ?";
+} elseif ($price === 'tren-15-trieu') {
+    $where[] = "v.new_price > ?";
     $params[] = 15000000;
     $types .= "i";
 }
@@ -73,33 +67,54 @@ if ($price == 'duoi-5-trieu') {
 /* Sắp xếp */
 switch ($sort) {
     case 'price_asc':
-        $orderBy = "new_price ASC";
+        $orderBy = "v.new_price ASC, p.id DESC";
         break;
 
     case 'price_desc':
-        $orderBy = "new_price DESC";
+        $orderBy = "v.new_price DESC, p.id DESC";
         break;
 
     case 'newest':
     default:
-        $orderBy = "id DESC";
+        $orderBy = "p.id DESC";
         break;
 }
 
-/* ================================
-   TẠO SQL
-================================ */
-$sql = "SELECT * FROM products";
+$whereSql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
-if (!empty($where)) {
-    $sql .= " WHERE " . implode(" AND ", $where);
-}
+/* Lấy mỗi dòng máy 1 card, giá là bản dung lượng thấp nhất */
+$sql = "
+    SELECT 
+        p.id,
+        p.name,
+        p.image_url,
+        p.image_folder,
+        p.description,
+        v.id AS variant_id,
+        v.storage,
+        v.old_price,
+        v.new_price,
+        v.stock
+    FROM products p
+    JOIN product_variants v 
+        ON v.id = (
+            SELECT v2.id
+            FROM product_variants v2
+            WHERE v2.product_id = p.id
+            ORDER BY 
+                CASE
+                    WHEN UPPER(v2.storage) LIKE '%TB%' 
+                        THEN CAST(REPLACE(UPPER(v2.storage), 'TB', '') AS UNSIGNED) * 1024
+                    WHEN UPPER(v2.storage) LIKE '%GB%' 
+                        THEN CAST(REPLACE(UPPER(v2.storage), 'GB', '') AS UNSIGNED)
+                    ELSE 999999
+                END ASC
+            LIMIT 1
+        )
+    $whereSql
+    ORDER BY $orderBy
+";
 
-$sql .= " ORDER BY " . $orderBy;
-
-/* ================================
-   CHẠY SQL
-================================ */
 if (!empty($params)) {
     $stmt = mysqli_prepare($conn, $sql);
 
@@ -112,6 +127,10 @@ if (!empty($params)) {
     $result = mysqli_stmt_get_result($stmt);
 } else {
     $result = mysqli_query($conn, $sql);
+
+    if (!$result) {
+        die("Lỗi SQL: " . mysqli_error($conn));
+    }
 }
 ?>
 
@@ -140,12 +159,20 @@ if (!empty($params)) {
             </a>
         </div>
 
+        <!-- NÚT 3 SỌC CHO MOBILE -->
+        <button type="button" class="mobile-menu-btn" onclick="toggleMobileMenu()">
+            ☰
+        </button>
+
         <nav class="header-center">
             <ul class="modern-menu">
                 <li><a href="index.php">Trang chủ</a></li>
                 <li><a href="dienthoai.php" class="active">Điện thoại</a></li>
                 <li><a href="suachua.php">Sửa chữa</a></li>
                 <li><a href="tincongnghe.php">Tin công nghệ</a></li>
+
+                <!-- Chỉ hiện trong menu mobile -->
+                <li class="mobile-menu-extra"><a href="cart.php">🛒 Giỏ hàng</a></li>
             </ul>
         </nav>
 
@@ -155,7 +182,7 @@ if (!empty($params)) {
                 <input 
                     type="text" 
                     name="q" 
-                    placeholder="Tìm điện thoại..." 
+                    placeholder="Tìm kiếm" 
                     class="search-input"
                     value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>"
                 >
@@ -193,8 +220,6 @@ if (!empty($params)) {
                 🛒 Giỏ hàng
                 <span id="cart-badge" class="cart-badge-hidden">0</span>
             </a>
-
-            <a href="#" class="icon-action" title="Tài khoản">👤</a>
 
         </div>
 
@@ -309,7 +334,7 @@ if (!empty($params)) {
                         <?php if ($q != ''): ?>
                             Kết quả tìm kiếm: "<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>"
                         <?php else: ?>
-                            Điện thoại di động
+                              Điện thoại di động
                         <?php endif; ?>
                     </h1>
 
@@ -371,7 +396,7 @@ if (!empty($params)) {
 
                     <div class="product-card">
 
-                        <a href="detail.php?id=<?= $row['id'] ?>" class="card-link">
+                        <a href="detail.php?id=<?= (int)$row['id'] ?>" class="card-link">
 
                             <div class="product-image-box">
                                 <img 
@@ -385,12 +410,14 @@ if (!empty($params)) {
                             </h3>
 
                             <div class="price-group">
-                                <p class="old-price">
-                                    <?= number_format($row['old_price'], 0, ',', '.') ?> đ
-                                </p>
+                                <?php if (!empty($row['old_price'])): ?>
+                                    <p class="old-price">
+                                        <?= number_format((int)$row['old_price'], 0, ',', '.') ?> đ
+                                    </p>
+                                <?php endif; ?>
 
                                 <p class="product-price">
-                                    <?= number_format($row['new_price'], 0, ',', '.') ?> đ
+                                    Từ <?= number_format((int)$row['new_price'], 0, ',', '.') ?> đ
                                 </p>
                             </div>
 
@@ -398,9 +425,11 @@ if (!empty($params)) {
 
                         <button 
                             class="btn-add-cart"
-                            onclick='addToCart(
+                            onclick='addToCartVariant(
                                 <?= json_encode($row["id"]) ?>,
+                                <?= json_encode($row["variant_id"]) ?>,
                                 <?= json_encode($row["name"], JSON_UNESCAPED_UNICODE) ?>,
+                                <?= json_encode($row["storage"], JSON_UNESCAPED_UNICODE) ?>,
                                 <?= json_encode($row["new_price"]) ?>,
                                 <?= json_encode($row["image_url"], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
                             )'
@@ -427,39 +456,84 @@ if (!empty($params)) {
 
 <div id="toast"></div>
 
-<script src="../public/js/cart.js"></script>
+<script src="../public/js/cart.js?v=<?= time(); ?>"></script>
 
 <script>
-const searchInput = document.querySelector('.search-input');
-const resultDiv = document.getElementById('search-results');
+/* =========================================
+   MỞ / ĐÓNG MENU MOBILE
+========================================= */
+function toggleMobileMenu() {
+    const header = document.querySelector('.modern-header');
 
-if (searchInput && resultDiv) {
-    searchInput.addEventListener('input', function() {
-        const q = this.value.trim();
-
-        if (q.length > 0) {
-            fetch('search_ajax.php?q=' + encodeURIComponent(q))
-                .then(response => response.text())
-                .then(data => {
-                    resultDiv.innerHTML = data;
-                    resultDiv.style.display = data.trim() ? 'block' : 'none';
-                })
-                .catch(error => {
-                    resultDiv.innerHTML = '<div class="search-empty">Lỗi tìm kiếm sản phẩm</div>';
-                    resultDiv.style.display = 'block';
-                });
-        } else {
-            resultDiv.innerHTML = '';
-            resultDiv.style.display = 'none';
-        }
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.search-form')) {
-            resultDiv.style.display = 'none';
-        }
-    });
+    if (header) {
+        header.classList.toggle('mobile-open');
+    }
 }
+
+/* =========================================
+   TÌM KIẾM AJAX
+========================================= */
+document.addEventListener('DOMContentLoaded', function () {
+    const searchForms = document.querySelectorAll('.search-form');
+
+    searchForms.forEach(function (form) {
+        const searchInput = form.querySelector('.search-input');
+        const resultDiv = form.querySelector('.search-results');
+
+        if (!searchInput || !resultDiv) return;
+
+        searchInput.addEventListener('input', function () {
+            const q = this.value.trim();
+
+            if (q.length > 0) {
+                fetch('search_ajax.php?q=' + encodeURIComponent(q))
+                    .then(response => response.text())
+                    .then(data => {
+                        resultDiv.innerHTML = data;
+                        resultDiv.style.display = data.trim() ? 'block' : 'none';
+                    })
+                    .catch(() => {
+                        resultDiv.innerHTML = '<div class="search-empty">Lỗi tìm kiếm sản phẩm</div>';
+                        resultDiv.style.display = 'block';
+                    });
+            } else {
+                resultDiv.innerHTML = '';
+                resultDiv.style.display = 'none';
+            }
+        });
+
+        form.addEventListener('submit', function (e) {
+            const firstResult = resultDiv.querySelector('.search-item');
+
+            if (firstResult) {
+                e.preventDefault();
+                window.location.href = firstResult.getAttribute('href');
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!form.contains(e.target)) {
+                resultDiv.style.display = 'none';
+            }
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        const header = document.querySelector('.modern-header');
+
+        if (!header) return;
+
+        const clickInsideHeader = header.contains(e.target);
+
+        if (!clickInsideHeader) {
+            header.classList.remove('mobile-open');
+        }
+    });
+
+    if (typeof updateCartBadge === 'function') {
+        updateCartBadge();
+    }
+});
 </script>
 
 </body>

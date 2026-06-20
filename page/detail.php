@@ -1,53 +1,150 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-include("../config/database.php");
-
+include('../config/database.php');
 mysqli_set_charset($conn, "utf8mb4");
 
-/* ================================
-   LẤY ID SẢN PHẨM
-================================ */
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 1;
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-/* ================================
-   LẤY SẢN PHẨM TỪ DATABASE
-================================ */
-$sql = "SELECT * FROM products WHERE id = ?";
-$stmt = mysqli_prepare($conn, $sql);
-
-if (!$stmt) {
-    die("Lỗi SQL: " . mysqli_error($conn));
+if ($id <= 0) {
+    die("ID sản phẩm không hợp lệ");
 }
 
+/* =========================
+   LẤY THÔNG TIN SẢN PHẨM
+========================= */
+$product_sql = "SELECT * FROM products WHERE id = ?";
+$stmt = mysqli_prepare($conn, $product_sql);
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
+$product_result = mysqli_stmt_get_result($stmt);
+$product = mysqli_fetch_assoc($product_result);
 
-$result = mysqli_stmt_get_result($stmt);
-$sp = mysqli_fetch_assoc($result);
-
-if (!$sp) {
-    die("Không tìm thấy sản phẩm này trên hệ thống!");
+if (!$product) {
+    die("Không tìm thấy sản phẩm");
 }
 
-$product_name = htmlspecialchars($sp['name'], ENT_QUOTES, 'UTF-8');
-$product_image = htmlspecialchars($sp['image_url'], ENT_QUOTES, 'UTF-8');
-$product_description = isset($sp['description']) 
-    ? nl2br(htmlspecialchars($sp['description'], ENT_QUOTES, 'UTF-8')) 
-    : 'Đang cập nhật mô tả sản phẩm...';
+/* =========================
+   LẤY CÁC PHIÊN BẢN DUNG LƯỢNG
+   Bảng product_variants hiện có:
+   id, product_id, storage, old_price, new_price, stock
+========================= */
+$variant_sql = "
+    SELECT *
+    FROM product_variants
+    WHERE product_id = ?
+    ORDER BY 
+        CASE
+            WHEN UPPER(storage) LIKE '%TB%' 
+                THEN CAST(REPLACE(UPPER(storage), 'TB', '') AS UNSIGNED) * 1024
+            WHEN UPPER(storage) LIKE '%GB%' 
+                THEN CAST(REPLACE(UPPER(storage), 'GB', '') AS UNSIGNED)
+            ELSE 999999
+        END ASC
+";
 
-$new_price = isset($sp['new_price']) ? (int)$sp['new_price'] : 0;
-$old_price = isset($sp['old_price']) ? (int)$sp['old_price'] : 0;
+$stmt2 = mysqli_prepare($conn, $variant_sql);
+mysqli_stmt_bind_param($stmt2, "i", $id);
+mysqli_stmt_execute($stmt2);
+$variant_result = mysqli_stmt_get_result($stmt2);
+
+$variants = [];
+
+while ($row = mysqli_fetch_assoc($variant_result)) {
+    $variants[] = $row;
+}
+
+if (empty($variants)) {
+    die("Sản phẩm này chưa có phiên bản dung lượng trong bảng product_variants");
+}
+
+$defaultVariant = $variants[0];
+
+/* =========================
+   LẤY TOÀN BỘ ẢNH TRONG FOLDER
+========================= */
+
+/*
+Ví dụ:
+image_url    = ../public/images/iPhone/iPhoneX/cover.jpg
+image_folder = ../public/images/iPhone/iPhoneX/
+*/
+
+$imageFolderUrl = '';
+
+if (isset($product['image_folder']) && !empty($product['image_folder'])) {
+    $imageFolderUrl = $product['image_folder'];
+} else {
+    $imageFolderUrl = dirname($product['image_url']) . '/';
+}
+
+/* Encode đường dẫn ảnh có dấu cách/ký tự đặc biệt */
+function encodeUrlPath($path) {
+    $path = str_replace('\\', '/', $path);
+    $parts = explode('/', $path);
+    $parts = array_map('rawurlencode', $parts);
+    return implode('/', $parts);
+}
+
+/* Quét toàn bộ ảnh trong folder, kể cả folder con */
+function getGalleryImageUrls($folderUrl) {
+    $folderPath = realpath(__DIR__ . '/' . $folderUrl);
+
+    if (!$folderPath || !is_dir($folderPath)) {
+        return [];
+    }
+
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'jfif', 'avif'];
+    $imageUrls = [];
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($folderPath, FilesystemIterator::SKIP_DOTS)
+    );
+
+    foreach ($iterator as $file) {
+        if ($file->isFile()) {
+            $ext = strtolower($file->getExtension());
+
+            if (in_array($ext, $allowedExtensions)) {
+                $fullPath = str_replace('\\', '/', $file->getPathname());
+                $basePath = str_replace('\\', '/', $folderPath);
+
+                $relativePath = ltrim(str_replace($basePath, '', $fullPath), '/');
+
+                $imageUrls[] = rtrim($folderUrl, '/') . '/' . encodeUrlPath($relativePath);
+            }
+        }
+    }
+
+    /* Đưa cover.* lên đầu */
+    usort($imageUrls, function($a, $b) {
+        $aName = strtolower(basename($a));
+        $bName = strtolower(basename($b));
+
+        if (preg_match('/^cover\./', $aName)) return -1;
+        if (preg_match('/^cover\./', $bName)) return 1;
+
+        return strcmp($aName, $bName);
+    });
+
+    return $imageUrls;
+}
+
+$galleryImages = getGalleryImageUrls($imageFolderUrl);
+
+/* Nếu không lấy được ảnh trong folder thì dùng ảnh đại diện */
+if (empty($galleryImages) && !empty($product['image_url'])) {
+    $galleryImages[] = $product['image_url'];
+}
+
+$mainImage = $galleryImages[0] ?? '';
+
 ?>
-
 <!doctype html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title><?= $product_name ?> - ABA Mobile</title>
+    <title><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?> - ABA Mobile</title>
 
     <link rel="stylesheet" href="../public/css/style.css?v=<?= time(); ?>" />
     <link rel="stylesheet" href="../public/css/detail.css?v=<?= time(); ?>" />
@@ -66,22 +163,30 @@ $old_price = isset($sp['old_price']) ? (int)$sp['old_price'] : 0;
             </a>
         </div>
 
+        <!-- NÚT 3 SỌC CHO MOBILE -->
+        <button type="button" class="mobile-menu-btn" onclick="toggleMobileMenu()">
+            ☰
+        </button>
+
         <nav class="header-center">
             <ul class="modern-menu">
                 <li><a href="index.php">Trang chủ</a></li>
                 <li><a href="dienthoai.php" class="active">Điện thoại</a></li>
                 <li><a href="suachua.php">Sửa chữa</a></li>
                 <li><a href="tincongnghe.php">Tin công nghệ</a></li>
+
+                <!-- Chỉ hiện trong menu mobile -->
+                <li class="mobile-menu-extra"><a href="cart.php">🛒 Giỏ hàng</a></li>
             </ul>
         </nav>
 
         <div class="header-right">
 
-            <form action="index.php" method="GET" class="search-form" autocomplete="off">
+            <form action="dienthoai.php" method="GET" class="search-form" autocomplete="off">
                 <input 
                     type="text" 
                     name="q" 
-                    placeholder="Tìm điện thoại..." 
+                    placeholder="Tìm sản phẩm, dịch vụ..." 
                     class="search-input"
                 >
 
@@ -95,242 +200,146 @@ $old_price = isset($sp['old_price']) ? (int)$sp['old_price'] : 0;
                 <span id="cart-badge" class="cart-badge-hidden">0</span>
             </a>
 
-            <a href="#" class="icon-action" title="Tài khoản">👤</a>
-
         </div>
 
     </div>
 </header>
 
-<main class="container detail-page">
+<main class="container product-detail-page">
 
-    <div class="detail-breadcrumb">
+    <div class="breadcrumb">
         <a href="index.php">Trang chủ</a>
         <span>&raquo;</span>
         <a href="dienthoai.php">Điện thoại</a>
         <span>&raquo;</span>
-        <strong><?= $product_name ?></strong>
+        <span><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></span>
     </div>
 
-    <section class="product-top-section">
+    <section class="product-detail-box">
 
-        <div class="product-gallery">
+        <!-- CỘT TRÁI: SLIDER ẢNH SẢN PHẨM -->
+        <div class="product-detail-image">
 
-            <div class="main-image-box">
-                <span class="badge-sale-detail">-15%</span>
+            <div class="gallery-slider">
+
+                <?php if (count($galleryImages) > 1): ?>
+                    <button 
+                        type="button" 
+                        class="gallery-nav gallery-prev" 
+                        onclick="prevImage()"
+                    >
+                        ‹
+                    </button>
+                <?php endif; ?>
 
                 <img 
-                    id="main-image" 
-                    src="<?= $product_image ?>" 
-                    alt="<?= $product_name ?>" 
-                />
+                    id="mainProductImage"
+                    src="<?= htmlspecialchars($mainImage, ENT_QUOTES, 'UTF-8') ?>" 
+                    alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>"
+                    class="main-detail-img"
+                >
+
+                <?php if (count($galleryImages) > 1): ?>
+                    <button 
+                        type="button" 
+                        class="gallery-nav gallery-next" 
+                        onclick="nextImage()"
+                    >
+                        ›
+                    </button>
+
+                    <div class="gallery-count">
+                        <span id="currentImageIndex">1</span>
+                        /
+                        <span><?= count($galleryImages) ?></span>
+                    </div>
+                <?php endif; ?>
+
             </div>
 
-            <div class="thumbnail-list">
-                <div 
-                    class="thumb-item active" 
-                    onclick="changeImage('<?= $product_image ?>', this)"
-                >
-                    <img src="<?= $product_image ?>" alt="Ảnh chính" />
+            <?php if (count($galleryImages) > 1): ?>
+                <div class="thumb-list">
+                    <?php foreach ($galleryImages as $index => $imgUrl): ?>
+                        <img 
+                            src="<?= htmlspecialchars($imgUrl, ENT_QUOTES, 'UTF-8') ?>"
+                            class="thumb-img <?= $index == 0 ? 'active' : '' ?>"
+                            onclick="showImage(<?= $index ?>)"
+                            alt="Ảnh <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>"
+                        >
+                    <?php endforeach; ?>
                 </div>
-
-                <div 
-                    class="thumb-item" 
-                    onclick="changeImage('https://placehold.co/600x600/f8fafc/00a8ff?text=Goc+Nghieng', this)"
-                >
-                    <img src="https://placehold.co/100x100/f8fafc/00a8ff?text=2" alt="Ảnh 2" />
-                </div>
-
-                <div 
-                    class="thumb-item" 
-                    onclick="changeImage('https://placehold.co/600x600/f8fafc/00a8ff?text=Mat+Lung', this)"
-                >
-                    <img src="https://placehold.co/100x100/f8fafc/00a8ff?text=3" alt="Ảnh 3" />
-                </div>
-
-                <div 
-                    class="thumb-item" 
-                    onclick="changeImage('https://placehold.co/600x600/f8fafc/00a8ff?text=Phu+Kien', this)"
-                >
-                    <img src="https://placehold.co/100x100/f8fafc/00a8ff?text=4" alt="Ảnh 4" />
-                </div>
-            </div>
+            <?php endif; ?>
 
         </div>
 
-        <div class="product-info-detail">
+        <!-- CỘT PHẢI: THÔNG TIN SẢN PHẨM -->
+        <div class="product-detail-info">
 
-            <h1 class="detail-title"><?= $product_name ?></h1>
+            <h1><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></h1>
 
-            <div class="detail-rating">
-                ⭐⭐⭐⭐⭐ 
-                <span class="review-count">(1.2k đánh giá)</span>
+            <div class="price-box">
+                <?php if (!empty($defaultVariant['old_price'])): ?>
+                    <p class="old-price" id="oldPrice">
+                        <?= number_format($defaultVariant['old_price'], 0, ',', '.') ?> đ
+                    </p>
+                <?php else: ?>
+                    <p class="old-price" id="oldPrice"></p>
+                <?php endif; ?>
+
+                <p class="product-price" id="newPrice">
+                    <?= number_format($defaultVariant['new_price'], 0, ',', '.') ?> đ
+                </p>
             </div>
 
-            <div class="detail-price-box">
-                <span class="detail-current-price">
-                    <?= number_format($new_price, 0, ',', '.'); ?> đ
-                </span>
+            <div class="storage-options">
+                <h3>Chọn dung lượng</h3>
 
-                <?php if ($old_price > 0): ?>
-                    <span class="detail-old-price">
-                        <?= number_format($old_price, 0, ',', '.'); ?> đ
-                    </span>
+                <div class="storage-list">
+                    <?php foreach ($variants as $index => $variant): ?>
+                        <button 
+                            type="button"
+                            class="storage-btn <?= $index == 0 ? 'active' : '' ?>"
+                            data-variant-id="<?= $variant['id'] ?>"
+                            data-storage="<?= htmlspecialchars($variant['storage'], ENT_QUOTES, 'UTF-8') ?>"
+                            data-old-price="<?= (int)$variant['old_price'] ?>"
+                            data-new-price="<?= (int)$variant['new_price'] ?>"
+                            data-stock="<?= (int)$variant['stock'] ?>"
+                        >
+                            <?= htmlspecialchars($variant['storage'], ENT_QUOTES, 'UTF-8') ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <div class="stock-status" id="stockStatus">
+                <?php if ((int)$defaultVariant['stock'] > 0): ?>
+                    Còn hàng: <?= (int)$defaultVariant['stock'] ?> sản phẩm
+                <?php else: ?>
+                    Tạm hết hàng
                 <?php endif; ?>
             </div>
 
-            <div class="option-group">
-                <h4>Chọn dung lượng:</h4>
+            <div class="product-desc">
+                <h3>Mô tả sản phẩm</h3>
 
-                <div class="option-list">
-                    <label class="option-btn active">
-                        <input type="radio" name="storage" checked />
-                        256GB
-                    </label>
-
-                    <label class="option-btn">
-                        <input type="radio" name="storage" />
-                        512GB
-                    </label>
-
-                    <label class="option-btn">
-                        <input type="radio" name="storage" />
-                        1TB
-                    </label>
-                </div>
+                <p>
+                    <?= nl2br(htmlspecialchars($product['description'] ?? '', ENT_QUOTES, 'UTF-8')) ?>
+                </p>
             </div>
 
-            <div class="option-group">
-                <h4>Chọn màu sắc:</h4>
-
-                <div class="option-list">
-                    <label class="option-btn active">
-                        <input type="radio" name="color" checked />
-                        Titan Tự Nhiên
-                    </label>
-
-                    <label class="option-btn">
-                        <input type="radio" name="color" />
-                        Titan Xanh
-                    </label>
-
-                    <label class="option-btn">
-                        <input type="radio" name="color" />
-                        Titan Đen
-                    </label>
-                </div>
-            </div>
-
-            <div class="promo-box">
-                <h4 class="promo-title">🎁 ƯU ĐÃI KHI MUA HÀNG</h4>
-
-                <ul class="promo-list">
-                    <li>✔️ Tặng củ sạc nhanh 20W chính hãng.</li>
-                    <li>✔️ Giảm thêm 5% tối đa 500k khi thanh toán qua VNPAY.</li>
-                    <li>✔️ Hỗ trợ thu cũ đổi mới trợ giá lên đến 2 triệu đồng.</li>
-                </ul>
-            </div>
-
-            <div class="detail-actions">
-
-                <button 
-                    class="btn-buy-now"
-                    onclick='buyNow(
-                        <?= json_encode($sp["id"]) ?>,
-                        <?= json_encode($sp["name"], JSON_UNESCAPED_UNICODE) ?>,
-                        <?= json_encode($new_price) ?>,
-                        <?= json_encode($sp["image_url"], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
-                    )'
-                >
-                    MUA NGAY 
-                    <span>Giao tận nơi hoặc nhận tại cửa hàng</span>
-                </button>
-
-                <button 
-                    class="btn-add-to-cart-large"
-                    onclick='addToCart(
-                        <?= json_encode($sp["id"]) ?>,
-                        <?= json_encode($sp["name"], JSON_UNESCAPED_UNICODE) ?>,
-                        <?= json_encode($new_price) ?>,
-                        <?= json_encode($sp["image_url"], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
-                    )'
-                >
-                    🛒 THÊM VÀO GIỎ
-                </button>
-
-            </div>
-
-        </div>
-
-    </section>
-
-    <section class="product-bottom-section">
-
-        <div class="product-article">
-
-            <h2 class="detail-section-heading">
-                Đặc điểm nổi bật
-            </h2>
-
-            <p>
-                <?= $product_description ?>
-            </p>
-
-            <img 
-                src="https://placehold.co/800x400/f8fafc/00a8ff?text=Khuyen+Mai" 
-                alt="Khuyến mãi" 
-                class="article-image"
-            />
-
-        </div>
-
-        <div class="product-specs">
-
-            <h2 class="detail-section-heading">
-                Thông số kỹ thuật
-            </h2>
-
-            <table class="spec-table">
-                <tr>
-                    <td>Màn hình:</td>
-                    <td><?= isset($sp['man_hinh']) && $sp['man_hinh'] != '' ? htmlspecialchars($sp['man_hinh'], ENT_QUOTES, 'UTF-8') : 'Đang cập nhật...'; ?></td>
-                </tr>
-
-                <tr>
-                    <td>Hệ điều hành:</td>
-                    <td><?= isset($sp['he_dieu_hanh']) && $sp['he_dieu_hanh'] != '' ? htmlspecialchars($sp['he_dieu_hanh'], ENT_QUOTES, 'UTF-8') : 'Đang cập nhật...'; ?></td>
-                </tr>
-
-                <tr>
-                    <td>Camera sau:</td>
-                    <td><?= isset($sp['camera_sau']) && $sp['camera_sau'] != '' ? htmlspecialchars($sp['camera_sau'], ENT_QUOTES, 'UTF-8') : 'Đang cập nhật...'; ?></td>
-                </tr>
-
-                <tr>
-                    <td>Camera trước:</td>
-                    <td><?= isset($sp['camera_truoc']) && $sp['camera_truoc'] != '' ? htmlspecialchars($sp['camera_truoc'], ENT_QUOTES, 'UTF-8') : 'Đang cập nhật...'; ?></td>
-                </tr>
-
-                <tr>
-                    <td>Chip CPU:</td>
-                    <td><?= isset($sp['cpu']) && $sp['cpu'] != '' ? htmlspecialchars($sp['cpu'], ENT_QUOTES, 'UTF-8') : 'Đang cập nhật...'; ?></td>
-                </tr>
-
-                <tr>
-                    <td>RAM:</td>
-                    <td><?= isset($sp['ram']) && $sp['ram'] != '' ? htmlspecialchars($sp['ram'], ENT_QUOTES, 'UTF-8') : 'Đang cập nhật...'; ?></td>
-                </tr>
-
-                <tr>
-                    <td>Dung lượng:</td>
-                    <td><?= isset($sp['dung_luong']) && $sp['dung_luong'] != '' ? htmlspecialchars($sp['dung_luong'], ENT_QUOTES, 'UTF-8') : 'Đang cập nhật...'; ?></td>
-                </tr>
-
-                <tr>
-                    <td>Pin:</td>
-                    <td><?= isset($sp['pin']) && $sp['pin'] != '' ? htmlspecialchars($sp['pin'], ENT_QUOTES, 'UTF-8') : 'Đang cập nhật...'; ?></td>
-                </tr>
-            </table>
+            <button 
+                class="btn-add-cart"
+                id="btnAddToCart"
+                data-product-id="<?= $product['id'] ?>"
+                data-product-name="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>"
+                data-image="<?= htmlspecialchars($mainImage, ENT_QUOTES, 'UTF-8') ?>"
+                data-variant-id="<?= $defaultVariant['id'] ?>"
+                data-storage="<?= htmlspecialchars($defaultVariant['storage'], ENT_QUOTES, 'UTF-8') ?>"
+                data-price="<?= $defaultVariant['new_price'] ?>"
+                <?= (int)$defaultVariant['stock'] <= 0 ? 'disabled' : '' ?>
+            >
+                🛒 THÊM VÀO GIỎ
+            </button>
 
         </div>
 
@@ -338,106 +347,237 @@ $old_price = isset($sp['old_price']) ? (int)$sp['old_price'] : 0;
 
 </main>
 
-<footer>
-    <div class="container footer-content">
-
-        <div class="footer-col">
-            <h3>ABA Mobile</h3>
-            <p>Hệ thống bán lẻ điện thoại di động chính hãng, uy tín hàng đầu với giá cả cạnh tranh.</p>
-        </div>
-
-        <div class="footer-col">
-            <h3>Thông Tin Liên Hệ</h3>
-            <p>📍 Địa chỉ: Hà Nội, Việt Nam</p>
-            <p>📞 Điện thoại: 1900 xxxx</p>
-            <p>✉️ Email: cskh@abamobile.com</p>
-        </div>
-
-        <div class="footer-col">
-            <h3>Chính Sách</h3>
-            <p><a href="#">Chính sách bảo hành</a></p>
-            <p><a href="#">Chính sách đổi trả 1-1</a></p>
-            <p><a href="#">Hướng dẫn mua trả góp</a></p>
-        </div>
-
-    </div>
-
-    <div class="footer-bottom">
-        <p>&copy; 2026 ABA Mobile. All rights reserved.</p>
-    </div>
-</footer>
-
 <div id="toast"></div>
 
-<script src="../public/js/cart.js"></script>
+<script src="../public/js/cart.js?v=<?= time(); ?>"></script>
 
 <script>
-function changeImage(imageUrl, thumbElement) {
-    document.getElementById("main-image").src = imageUrl;
+/* =========================================
+   MỞ / ĐÓNG MENU MOBILE
+========================================= */
+function toggleMobileMenu() {
+    const header = document.querySelector('.modern-header');
 
-    let thumbs = document.getElementsByClassName("thumb-item");
+    if (header) {
+        header.classList.toggle('mobile-open');
+    }
+}
 
-    for (let i = 0; i < thumbs.length; i++) {
-        thumbs[i].classList.remove("active");
+/* =========================
+   SLIDER ẢNH SẢN PHẨM
+========================= */
+const galleryImages = <?= json_encode($galleryImages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+let currentImage = 0;
+
+function showImage(index) {
+    if (!galleryImages.length) return;
+
+    if (index < 0) {
+        index = galleryImages.length - 1;
     }
 
-    thumbElement.classList.add("active");
+    if (index >= galleryImages.length) {
+        index = 0;
+    }
+
+    currentImage = index;
+
+    const mainImage = document.getElementById('mainProductImage');
+    const currentIndexEl = document.getElementById('currentImageIndex');
+    const thumbs = document.querySelectorAll('.thumb-img');
+
+    if (mainImage) {
+        mainImage.src = galleryImages[currentImage];
+    }
+
+    if (currentIndexEl) {
+        currentIndexEl.textContent = currentImage + 1;
+    }
+
+    thumbs.forEach((thumb, i) => {
+        thumb.classList.toggle('active', i === currentImage);
+    });
 }
 
-function buyNow(id, ten, gia, hinh) {
-    addToCart(id, ten, gia, hinh);
-    window.location.href = "checkout.php";
+function nextImage() {
+    showImage(currentImage + 1);
 }
 
-document.querySelectorAll(".option-list .option-btn").forEach(function(btn) {
-    btn.addEventListener("click", function() {
-        const parent = this.closest(".option-list");
-        const buttons = parent.querySelectorAll(".option-btn");
+function prevImage() {
+    showImage(currentImage - 1);
+}
 
-        buttons.forEach(function(item) {
-            item.classList.remove("active");
-        });
+/* =========================
+   FORMAT TIỀN
+========================= */
+function formatMoney(number) {
+    return Number(number).toLocaleString('vi-VN') + ' đ';
+}
 
-        this.classList.add("active");
+/* =========================
+   CHỌN DUNG LƯỢNG
+========================= */
+const storageButtons = document.querySelectorAll('.storage-btn');
+const oldPriceEl = document.getElementById('oldPrice');
+const newPriceEl = document.getElementById('newPrice');
+const stockStatusEl = document.getElementById('stockStatus');
+const btnAddToCart = document.getElementById('btnAddToCart');
+
+storageButtons.forEach(button => {
+    button.addEventListener('click', function () {
+        storageButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+
+        const variantId = this.dataset.variantId;
+        const storage = this.dataset.storage;
+        const oldPrice = Number(this.dataset.oldPrice);
+        const newPrice = Number(this.dataset.newPrice);
+        const stock = Number(this.dataset.stock);
+
+        if (oldPriceEl) {
+            oldPriceEl.textContent = oldPrice > 0 ? formatMoney(oldPrice) : '';
+        }
+
+        if (newPriceEl) {
+            newPriceEl.textContent = formatMoney(newPrice);
+        }
+
+        if (stockStatusEl) {
+            if (stock > 0) {
+                stockStatusEl.textContent = 'Còn hàng: ' + stock + ' sản phẩm';
+                stockStatusEl.classList.remove('out-of-stock');
+            } else {
+                stockStatusEl.textContent = 'Tạm hết hàng';
+                stockStatusEl.classList.add('out-of-stock');
+            }
+        }
+
+        if (btnAddToCart) {
+            btnAddToCart.dataset.variantId = variantId;
+            btnAddToCart.dataset.storage = storage;
+            btnAddToCart.dataset.price = newPrice;
+            btnAddToCart.disabled = stock <= 0;
+        }
     });
 });
 
-if (typeof updateCartBadge === "function") {
-    updateCartBadge();
-}
-</script>
+/* =========================
+   THÊM VÀO GIỎ
+========================= */
+if (btnAddToCart) {
+    btnAddToCart.addEventListener('click', function () {
+        const productId = this.dataset.productId;
+        const variantId = this.dataset.variantId;
+        const name = this.dataset.productName;
+        const storage = this.dataset.storage;
+        const price = Number(this.dataset.price);
+        const image = this.dataset.image;
 
-<script>
-const searchInput = document.querySelector('.search-input');
-const resultDiv = document.getElementById('search-results');
-
-if (searchInput && resultDiv) {
-    searchInput.addEventListener('input', function() {
-        const q = this.value.trim();
-
-        if (q.length > 0) {
-            fetch('search_ajax.php?q=' + encodeURIComponent(q))
-                .then(response => response.text())
-                .then(data => {
-                    resultDiv.innerHTML = data;
-                    resultDiv.style.display = data.trim() ? 'block' : 'none';
-                })
-                .catch(error => {
-                    resultDiv.innerHTML = '<div class="search-empty">Lỗi tìm kiếm sản phẩm</div>';
-                    resultDiv.style.display = 'block';
-                });
+        if (typeof addToCartVariant === 'function') {
+            addToCartVariant(productId, variantId, name, storage, price, image);
         } else {
-            resultDiv.innerHTML = '';
-            resultDiv.style.display = 'none';
-        }
-    });
+            let gio = JSON.parse(localStorage.getItem("gio_hang")) || {};
 
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.search-form')) {
-            resultDiv.style.display = 'none';
+            const cartId = productId + "_" + variantId;
+            const fullName = name + " " + storage;
+
+            if (gio[cartId]) {
+                gio[cartId].so_luong++;
+            } else {
+                gio[cartId] = {
+                    id: productId,
+                    variant_id: variantId,
+                    ten: fullName,
+                    gia: price,
+                    hinh: image,
+                    so_luong: 1
+                };
+            }
+
+            localStorage.setItem("gio_hang", JSON.stringify(gio));
+
+            if (typeof updateCartBadge === 'function') {
+                updateCartBadge();
+            }
+
+            alert("Đã thêm vào giỏ hàng!");
         }
     });
 }
+
+/* =========================
+   CẬP NHẬT BADGE GIỎ HÀNG
+========================= */
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof updateCartBadge === 'function') {
+        updateCartBadge();
+    }
+});
+
+/* =========================
+   SEARCH AJAX + ĐÓNG MENU MOBILE
+========================= */
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof updateCartBadge === 'function') {
+        updateCartBadge();
+    }
+
+    const searchForms = document.querySelectorAll('.search-form');
+
+    searchForms.forEach(function (form) {
+        const searchInput = form.querySelector('.search-input');
+        const resultDiv = form.querySelector('.search-results');
+
+        if (!searchInput || !resultDiv) return;
+
+        searchInput.addEventListener('input', function () {
+            const q = this.value.trim();
+
+            if (q.length > 0) {
+                fetch('search_ajax.php?q=' + encodeURIComponent(q))
+                    .then(response => response.text())
+                    .then(data => {
+                        resultDiv.innerHTML = data;
+                        resultDiv.style.display = data.trim() ? 'block' : 'none';
+                    })
+                    .catch(() => {
+                        resultDiv.innerHTML = '<div class="search-empty">Lỗi tìm kiếm sản phẩm</div>';
+                        resultDiv.style.display = 'block';
+                    });
+            } else {
+                resultDiv.innerHTML = '';
+                resultDiv.style.display = 'none';
+            }
+        });
+
+        form.addEventListener('submit', function (e) {
+            const firstResult = resultDiv.querySelector('.search-item');
+
+            if (firstResult) {
+                e.preventDefault();
+                window.location.href = firstResult.getAttribute('href');
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!form.contains(e.target)) {
+                resultDiv.style.display = 'none';
+            }
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        const header = document.querySelector('.modern-header');
+
+        if (!header) return;
+
+        const clickInsideHeader = header.contains(e.target);
+
+        if (!clickInsideHeader) {
+            header.classList.remove('mobile-open');
+        }
+    });
+});
 </script>
 
 </body>

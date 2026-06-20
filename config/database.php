@@ -1,17 +1,8 @@
-<?php
-$servername = "localhost";
-$username = "root"; // Tài khoản mặc định của XAMPP
-$password = "";     // XAMPP mặc định không có mật khẩu
-$dbname = "aba_mobile";
+$conn = mysqli_connect(
+    "sql204.infinityfree.com",
+    "if0_42230726",
+    "binh2104",
+    "if0_42230726_aba_mobile"
+);
 
-// Khởi tạo kết nối
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Kiểm tra kết nối
-if ($conn->connect_error) {
-    die("Kết nối thất bại: " . $conn->connect_error);
-}
-
-// Bắt buộc dùng dòng này để tiếng Việt không bị lỗi font (chữ ô vuông)
-$conn->set_charset("utf8mb4");
-?>
+mysqli_set_charset($conn, "utf8mb4");

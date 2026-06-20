@@ -54,7 +54,7 @@
 .repair-list-title {
   font-size: 28px;
   margin-bottom: 28px;
-  font-family: "Times New Roman", Times, serif;
+  font-family: inherit;
 }
 
 .empty-message {
@@ -160,12 +160,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 .repair-product-img img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  display: block;
 }
 
 .repair-product-img.no-img::before {
@@ -446,34 +450,87 @@
 }
 
 /* =========================================
-   RESPONSIVE
+   RESPONSIVE SẠCH - TRANG SỬA CHỮA
+   Mobile: ô dịch vụ sửa chữa 1 hàng 2 cột
 ========================================= */
 
 @media (max-width: 1300px) {
   .repair-product-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 1100px) {
   .service-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 992px) {
   .repair-product-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .repair-product-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .repair-page {
+    padding: 22px 14px;
   }
 
-  .repair-product-img {
-    height: 145px;
+  .repair-breadcrumb {
+    margin-bottom: 18px;
+    font-size: 13px;
+  }
+
+  .repair-page-title,
+  .section-title,
+  .repair-list-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .service-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .service-card {
+    padding: 16px;
+    min-height: auto;
+    border-radius: 16px;
+  }
+
+  .service-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 23px;
+    margin-bottom: 12px;
+  }
+
+  .service-card h3 {
+    font-size: 15px;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+
+  .service-card p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .booking-section,
+  .repair-list-section,
+  .price-section {
+    margin-top: 40px;
+  }
+
+  .booking-box {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .booking-box h2 {
+    font-size: 22px;
   }
 
   .booking-form {
@@ -485,15 +542,133 @@
   .booking-form .btn-submit {
     grid-column: span 1;
   }
+
+  .repair-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px;
+  }
+
+  .repair-product-card {
+    min-height: auto;
+    padding: 12px 8px;
+    border-radius: 16px;
+  }
+
+  .repair-product-img {
+    height: 135px;
+    padding: 8px;
+  }
+
+  .repair-product-name {
+    font-size: 13px;
+    line-height: 1.35;
+    min-height: 48px;
+    margin: 12px 0 10px;
+  }
+
+  .repair-product-price {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .repair-product-btn {
+    font-size: 12px;
+    padding: 9px 0;
+  }
+
+  .price-table-wrap {
+    overflow-x: auto;
+  }
+
+  .repair-price-table {
+    min-width: 650px;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: 18px;
+  }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 420px) {
   .service-grid,
   .repair-product-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+
+  .service-card {
+    padding: 13px 10px;
+  }
+
+  .service-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+  }
+
+  .service-card h3 {
+    font-size: 13px;
+  }
+
+  .service-card p {
+    font-size: 12px;
+  }
+
+  .repair-product-card {
+    padding: 10px 7px;
+  }
+
+  .repair-product-img {
+    height: 128px;
+    padding: 7px;
+  }
+
+  .repair-product-name {
+    font-size: 12px;
+    min-height: 44px;
+  }
+
+  .repair-product-price {
+    font-size: 14px;
+  }
+
+  .repair-product-btn {
+    font-size: 11px;
+    padding: 8px 0;
   }
 
   .booking-box {
-    padding: 22px;
+    padding: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .service-grid,
+  .repair-product-grid {
+    gap: 8px;
+  }
+
+  .repair-product-card {
+    padding: 9px 6px;
+  }
+
+  .repair-product-img {
+    height: 118px;
+    padding: 6px;
+  }
+
+  .repair-product-name {
+    font-size: 11px;
+    min-height: 40px;
+  }
+
+  .repair-product-price {
+    font-size: 13px;
+  }
+
+  .repair-product-btn {
+    font-size: 10px;
+    padding: 7px 0;
   }
 }

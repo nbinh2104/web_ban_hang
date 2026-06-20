@@ -51,7 +51,7 @@ function hienThiGio() {
             <tr><td colspan="5" class="empty-cart">
                 <div class="empty-icon">🛒</div>
                 <p>Giỏ hàng trống</p>
-                <a href="index.html" class="btn-continue">Tiếp tục mua sắm</a>
+                <a href="dienthoai.php" class="btn-continue">Tiếp tục mua sắm</a>
             </td></tr>`;
     document.getElementById("tong-tien").innerText = "0 đ";
     document.getElementById("so-mon").innerText = "0 sản phẩm";
@@ -111,30 +111,36 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove("show"), 2500);
 }
 
-function submitOrder(event) {
-  event.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+  updateCartBadge();
+  hienThiGio();
+});
+function addToCartVariant(productId, variantId, name, storage, price, image) {
   let gio = JSON.parse(localStorage.getItem("gio_hang")) || {};
-  if (Object.keys(gio).length === 0) {
-    alert("Giỏ hàng trống!");
-    return;
+
+  const cartId = productId + "_" + variantId;
+  const fullName = name + " " + storage;
+
+  if (gio[cartId]) {
+    gio[cartId].so_luong++;
+  } else {
+    gio[cartId] = {
+      id: productId,
+      variant_id: variantId,
+      ten: fullName,
+      gia: price,
+      hinh: image,
+      so_luong: 1,
+    };
   }
 
-  let donHang = {
-    ten: document.getElementById("f-ten").value,
-    dia_chi: document.getElementById("f-diachi").value,
-    dien_thoai: document.getElementById("f-dienthoai").value,
-    email: document.getElementById("f-email").value,
-    san_pham: gio,
-    thoi_gian: new Date().toLocaleString("vi-VN"),
-  };
+  localStorage.setItem("gio_hang", JSON.stringify(gio));
 
-  let dsDon = JSON.parse(localStorage.getItem("don_hang_list")) || [];
-  dsDon.push(donHang);
-  localStorage.setItem("don_hang_list", JSON.stringify(dsDon));
-  localStorage.removeItem("gio_hang");
-  window.location.href = "success.html";
-}
-document.addEventListener("DOMContentLoaded", () => {
+  if (typeof showToast === "function") {
+    showToast("Đã thêm vào giỏ hàng!");
+  }
+
+  if (typeof updateCartBadge === "function") {
     updateCartBadge();
-    hienThiGio();
-});
+  }
+}

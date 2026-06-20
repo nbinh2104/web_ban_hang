@@ -405,3 +405,117 @@
     font-size: 26px;
   }
 }
+/* =========================================
+   MOBILE FIX - TRANG TIN CÔNG NGHỆ
+   Dán cuối file tincongnghe.css
+========================================= */
+
+@media (max-width: 768px) {
+  .news-page {
+    padding: 22px 14px;
+  }
+
+  .news-breadcrumb {
+    font-size: 13px;
+  }
+
+  .news-page-title {
+    font-size: 24px;
+    margin-bottom: 22px;
+  }
+
+  .news-layout {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .featured-img {
+    height: 240px;
+  }
+
+  .news-content {
+    padding: 18px;
+  }
+
+  .news-content h2 {
+    font-size: 22px;
+  }
+
+  .news-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .news-thumb {
+    height: 210px;
+  }
+
+  .news-info h3 {
+    font-size: 18px;
+  }
+
+  .news-content p,
+  .news-info p {
+    font-size: 14px;
+  }
+
+  .news-sidebar {
+    position: static;
+    top: auto;
+  }
+
+  .sidebar-widget {
+    padding: 18px;
+  }
+
+  .promo-banner {
+    min-height: 260px;
+  }
+
+  .promo-content strong {
+    font-size: 24px;
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+}
+
+/* =========================================
+   ÉP SẢN PHẨM MOBILE: 1 HÀNG 2 CỘT
+========================================= */
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px;
+  }
+
+  .product-card {
+    padding: 12px 8px;
+  }
+
+  .card-link img {
+    height: 135px;
+  }
+
+  .product-title {
+    font-size: 13px;
+    line-height: 1.35;
+    min-height: 38px;
+  }
+
+  .product-price {
+    font-size: 14px;
+  }
+
+  .old-price {
+    font-size: 12px;
+  }
+
+  .btn-add-cart {
+    font-size: 11px;
+    padding: 9px 6px;
+  }
+}

@@ -33,44 +33,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $total_amount = 0;
                 $order_items = [];
 
-                foreach ($cart as $product_id => $item) {
-                    $product_id = (int)$product_id;
-                    $quantity = isset($item['so_luong']) ? (int)$item['so_luong'] : 0;
+                foreach ($cart as $cart_key => $item) {
+    $product_id = isset($item['id']) ? (int)$item['id'] : (int)$cart_key;
+    $variant_id = isset($item['variant_id']) ? (int)$item['variant_id'] : 0;
+    $quantity = isset($item['so_luong']) ? (int)$item['so_luong'] : 0;
 
-                    if ($product_id <= 0 || $quantity <= 0) {
-                        continue;
-                    }
+    if ($product_id <= 0 || $variant_id <= 0 || $quantity <= 0) {
+        continue;
+    }
 
-                    $sql_product = "SELECT id, name, new_price, image_url FROM products WHERE id = ?";
-                    $stmt_product = mysqli_prepare($conn, $sql_product);
+    $sql_product = "
+        SELECT 
+            p.id,
+            p.name,
+            p.image_url,
+            v.new_price
+        FROM products p
+        JOIN product_variants v ON v.product_id = p.id
+        WHERE p.id = ? AND v.id = ?
+        LIMIT 1
+    ";
 
-                    if (!$stmt_product) {
-                        throw new Exception("Lỗi SQL sản phẩm: " . mysqli_error($conn));
-                    }
+    $stmt_product = mysqli_prepare($conn, $sql_product);
 
-                    mysqli_stmt_bind_param($stmt_product, "i", $product_id);
-                    mysqli_stmt_execute($stmt_product);
+    if (!$stmt_product) {
+        throw new Exception("Lỗi SQL sản phẩm: " . mysqli_error($conn));
+    }
 
-                    $product_result = mysqli_stmt_get_result($stmt_product);
-                    $product = mysqli_fetch_assoc($product_result);
+    mysqli_stmt_bind_param($stmt_product, "ii", $product_id, $variant_id);
+    mysqli_stmt_execute($stmt_product);
 
-                    if (!$product) {
-                        continue;
-                    }
+    $product_result = mysqli_stmt_get_result($stmt_product);
+    $product = mysqli_fetch_assoc($product_result);
 
-                    $price = (int)$product['new_price'];
-                    $subtotal = $price * $quantity;
-                    $total_amount += $subtotal;
+    if (!$product) {
+        continue;
+    }
 
-                    $order_items[] = [
-                        'product_id' => $product['id'],
-                        'product_name' => $product['name'],
-                        'product_image' => $product['image_url'],
-                        'price' => $price,
-                        'quantity' => $quantity,
-                        'subtotal' => $subtotal
-                    ];
-                }
+    $price = (int)$product['new_price'];
+
+    // Dự phòng: nếu database bị thiếu giá thì lấy giá đang lưu trong giỏ
+    if ($price <= 0 && isset($item['gia'])) {
+        $price = (int)$item['gia'];
+    }
+
+    if ($price <= 0) {
+        continue;
+    }
+
+    $subtotal = $price * $quantity;
+    $total_amount += $subtotal;
+
+    $order_items[] = [
+        'product_id' => $product['id'],
+        'product_name' => $product['name'],
+        'product_image' => $product['image_url'],
+        'price' => $price,
+        'quantity' => $quantity,
+        'subtotal' => $subtotal
+    ];
+}
 
                 if (empty($order_items)) {
                     throw new Exception("Không có sản phẩm hợp lệ trong giỏ hàng.");
@@ -167,22 +189,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </a>
         </div>
 
+        <!-- NÚT 3 SỌC CHO MOBILE -->
+        <button type="button" class="mobile-menu-btn" onclick="toggleMobileMenu()">
+            ☰
+        </button>
+
         <nav class="header-center">
             <ul class="modern-menu">
                 <li><a href="index.php">Trang chủ</a></li>
                 <li><a href="dienthoai.php">Điện thoại</a></li>
                 <li><a href="suachua.php">Sửa chữa</a></li>
                 <li><a href="tincongnghe.php">Tin công nghệ</a></li>
+
+                <!-- Chỉ hiện trong menu mobile -->
+                <li class="mobile-menu-extra"><a href="cart.php">🛒 Giỏ hàng</a></li>
             </ul>
         </nav>
 
         <div class="header-right">
 
-            <form action="index.php" method="GET" class="search-form" autocomplete="off">
+            <form action="dienthoai.php" method="GET" class="search-form" autocomplete="off">
                 <input 
                     type="text" 
                     name="q" 
-                    placeholder="Tìm điện thoại..." 
+                    placeholder="Tìm kiếm" 
                     class="search-input"
                 >
 
@@ -195,8 +225,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 🛒 Giỏ hàng
                 <span id="cart-badge" class="cart-badge-hidden">0</span>
             </a>
-
-            <a href="#" class="icon-action" title="Tài khoản">👤</a>
 
         </div>
 
@@ -383,13 +411,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div id="toast"></div>
 
-<script src="../public/js/cart.js"></script>
+<script src="../public/js/cart.js?v=<?= time(); ?>"></script>
 
 <script>
+/* =========================================
+   MỞ / ĐÓNG MENU MOBILE
+========================================= */
+function toggleMobileMenu() {
+    const header = document.querySelector('.modern-header');
+
+    if (header) {
+        header.classList.toggle('mobile-open');
+    }
+}
+
+/* =========================================
+   HIỂN THỊ TÓM TẮT ĐƠN HÀNG
+========================================= */
 function hienThiOrderSummary() {
     let gio = JSON.parse(localStorage.getItem("gio_hang")) || {};
     let list = document.getElementById("order-items-list");
     let tong = 0;
+
+    if (!list) return;
 
     list.innerHTML = "";
 
@@ -407,7 +451,7 @@ function hienThiOrderSummary() {
 
     keys.forEach((id) => {
         let sp = gio[id];
-        let thanhTien = sp.gia * sp.so_luong;
+        let thanhTien = Number(sp.gia || 0) * Number(sp.so_luong || 0);
         tong += thanhTien;
 
         list.innerHTML += `
@@ -437,6 +481,9 @@ function hienThiOrderSummary() {
         tong.toLocaleString("vi-VN") + " đ";
 }
 
+/* =========================================
+   GỬI ĐƠN HÀNG
+========================================= */
 function submitOrder() {
     let gio = JSON.parse(localStorage.getItem("gio_hang")) || {};
 
@@ -450,44 +497,72 @@ function submitOrder() {
     return true;
 }
 
-hienThiOrderSummary();
+/* =========================================
+   KHỞI TẠO TRANG
+========================================= */
+document.addEventListener('DOMContentLoaded', function () {
+    hienThiOrderSummary();
 
-if (typeof updateCartBadge === "function") {
-    updateCartBadge();
-}
-</script>
+    if (typeof updateCartBadge === "function") {
+        updateCartBadge();
+    }
 
-<script>
-const searchInput = document.querySelector('.search-input');
-const resultDiv = document.getElementById('search-results');
+    const searchForms = document.querySelectorAll('.search-form');
 
-if (searchInput && resultDiv) {
-    searchInput.addEventListener('input', function() {
-        const q = this.value.trim();
+    searchForms.forEach(function (form) {
+        const searchInput = form.querySelector('.search-input');
+        const resultDiv = form.querySelector('.search-results');
 
-        if (q.length > 0) {
-            fetch('search_ajax.php?q=' + encodeURIComponent(q))
-                .then(response => response.text())
-                .then(data => {
-                    resultDiv.innerHTML = data;
-                    resultDiv.style.display = data.trim() ? 'block' : 'none';
-                })
-                .catch(error => {
-                    resultDiv.innerHTML = '<div class="search-empty">Lỗi tìm kiếm sản phẩm</div>';
-                    resultDiv.style.display = 'block';
-                });
-        } else {
-            resultDiv.innerHTML = '';
-            resultDiv.style.display = 'none';
-        }
+        if (!searchInput || !resultDiv) return;
+
+        searchInput.addEventListener('input', function () {
+            const q = this.value.trim();
+
+            if (q.length > 0) {
+                fetch('search_ajax.php?q=' + encodeURIComponent(q))
+                    .then(response => response.text())
+                    .then(data => {
+                        resultDiv.innerHTML = data;
+                        resultDiv.style.display = data.trim() ? 'block' : 'none';
+                    })
+                    .catch(() => {
+                        resultDiv.innerHTML = '<div class="search-empty">Lỗi tìm kiếm</div>';
+                        resultDiv.style.display = 'block';
+                    });
+            } else {
+                resultDiv.innerHTML = '';
+                resultDiv.style.display = 'none';
+            }
+        });
+
+        form.addEventListener('submit', function (e) {
+            const firstResult = resultDiv.querySelector('.search-item');
+
+            if (firstResult) {
+                e.preventDefault();
+                window.location.href = firstResult.getAttribute('href');
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!form.contains(e.target)) {
+                resultDiv.style.display = 'none';
+            }
+        });
     });
 
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.search-form')) {
-            resultDiv.style.display = 'none';
+    document.addEventListener('click', function (e) {
+        const header = document.querySelector('.modern-header');
+
+        if (!header) return;
+
+        const clickInsideHeader = header.contains(e.target);
+
+        if (!clickInsideHeader) {
+            header.classList.remove('mobile-open');
         }
     });
-}
+});
 </script>
 
 </body>

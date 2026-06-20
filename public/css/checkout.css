@@ -409,54 +409,6 @@ body {
 }
 
 /* =========================================
-   RESPONSIVE
-========================================= */
-
-@media (max-width: 900px) {
-  .checkout-main {
-    grid-template-columns: 1fr;
-  }
-
-  .order-summary {
-    position: static;
-  }
-}
-
-@media (max-width: 768px) {
-  .checkout-steps {
-    padding-top: 24px;
-  }
-
-  .step-line {
-    width: 45px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-}
-
-@media (max-width: 560px) {
-  .checkout-main {
-    margin-top: 30px;
-    padding: 0 18px;
-  }
-
-  .form-card,
-  .order-summary {
-    padding: 22px;
-  }
-
-  .step-label {
-    font-size: 11px;
-  }
-
-  .step-line {
-    width: 30px;
-  }
-}
-/* =========================================
    THÔNG BÁO LỖI CHECKOUT
 ========================================= */
 
@@ -619,5 +571,219 @@ body {
 
   .success-item img {
     margin: 0 auto;
+  }
+}
+
+/* =========================================
+   RESPONSIVE SẠCH - TRANG THANH TOÁN
+   Mobile: giống cart, header dùng chung style.css
+========================================= */
+
+@media (max-width: 900px) {
+  .checkout-main {
+    grid-template-columns: 1fr;
+  }
+
+  .order-summary {
+    position: static;
+    top: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .checkout-steps {
+    padding: 22px 10px 0;
+  }
+
+  .step-dot {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .step-label {
+    font-size: 11px;
+  }
+
+  .step-line {
+    width: 34px;
+  }
+
+  .checkout-main {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 28px auto 55px;
+    padding: 0 14px;
+  }
+
+  .form-card,
+  .order-summary {
+    width: 100%;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .order-summary {
+    position: static;
+    top: auto;
+  }
+
+  .form-section-title,
+  .summary-title {
+    font-size: 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .form-card input[type="text"],
+  .form-card input[type="email"],
+  .form-card input[type="tel"],
+  .form-card textarea {
+    font-size: 14px;
+    padding: 12px 13px;
+    font-family: inherit;
+  }
+
+  .payment-option {
+    align-items: flex-start;
+    padding: 13px;
+  }
+
+  .pay-icon {
+    font-size: 22px;
+  }
+
+  .pay-label {
+    font-size: 14px;
+  }
+
+  .pay-sub {
+    font-size: 12px;
+  }
+
+  .order-item {
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .order-item img {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+  }
+
+  .order-item-name {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .order-item-price {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .order-row.total span:last-child {
+    font-size: 21px;
+  }
+
+  .btn-order {
+    padding: 14px;
+    font-size: 15px;
+  }
+
+  .secure-note {
+    font-size: 12px;
+  }
+
+  .success-page {
+    padding: 30px 14px 60px;
+  }
+
+  .success-box {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .success-box h1 {
+    font-size: 26px;
+  }
+
+  .success-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .success-item img {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .checkout-steps {
+    padding: 18px 8px 0;
+  }
+
+  .step-dot {
+    width: 28px;
+    height: 28px;
+  }
+
+  .step-label {
+    font-size: 10px;
+  }
+
+  .step-line {
+    width: 22px;
+  }
+
+  .checkout-main {
+    padding: 0 12px;
+    margin-top: 24px;
+  }
+
+  .form-card,
+  .order-summary {
+    padding: 16px;
+  }
+
+  .payment-option {
+    gap: 10px;
+  }
+
+  .order-item {
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    column-gap: 10px;
+    row-gap: 6px;
+  }
+
+  .order-item-price {
+    grid-column: 2;
+    text-align: left;
+  }
+
+  .order-row.total span:last-child {
+    font-size: 19px;
+  }
+
+  .success-box {
+    padding: 18px;
+  }
+
+  .success-actions {
+    flex-direction: column;
+  }
+
+  .btn-success-home,
+  .btn-success-buy {
+    width: 100%;
+    text-align: center;
   }
 }

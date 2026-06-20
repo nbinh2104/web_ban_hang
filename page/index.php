@@ -3,30 +3,70 @@ include('../config/database.php');
 
 mysqli_set_charset($conn, "utf8mb4");
 
-/* ================================
-   XỬ LÝ TÌM KIẾM TRANG CHỦ
-================================ */
 $keyword = isset($_GET['q']) ? trim($_GET['q']) : '';
 
-if ($keyword != '') {
-    $search = "%" . $keyword . "%";
+$whereSql = "";
+$params = [];
+$types = "";
 
-    $sql = "SELECT * FROM products 
-            WHERE name LIKE ? 
-            ORDER BY id DESC";
+if ($keyword !== '') {
+    $whereSql = "WHERE p.name LIKE ?";
+    $params[] = "%" . $keyword . "%";
+    $types .= "s";
+}
 
+$sql = "
+    SELECT 
+        p.id,
+        p.name,
+        p.image_url,
+        p.image_folder,
+        p.description,
+        v.id AS variant_id,
+        v.storage,
+        v.old_price,
+        v.new_price,
+        v.stock
+    FROM products p
+    JOIN product_variants v 
+        ON v.id = (
+            SELECT v2.id
+            FROM product_variants v2
+            WHERE v2.product_id = p.id
+            ORDER BY 
+                CASE
+                    WHEN UPPER(v2.storage) LIKE '%TB%' 
+                        THEN CAST(REPLACE(UPPER(v2.storage), 'TB', '') AS UNSIGNED) * 1024
+                    WHEN UPPER(v2.storage) LIKE '%GB%' 
+                        THEN CAST(REPLACE(UPPER(v2.storage), 'GB', '') AS UNSIGNED)
+                    ELSE 999999
+                END ASC
+            LIMIT 1
+        )
+    $whereSql
+    ORDER BY p.id DESC
+";
+
+if ($keyword === '') {
+    $sql .= " LIMIT 8";
+}
+
+if (!empty($params)) {
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
         die("Lỗi SQL: " . mysqli_error($conn));
     }
 
-    mysqli_stmt_bind_param($stmt, "s", $search);
+    mysqli_stmt_bind_param($stmt, $types, ...$params);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 } else {
-    $sql = "SELECT * FROM products ORDER BY id DESC LIMIT 8";
     $result = mysqli_query($conn, $sql);
+
+    if (!$result) {
+        die("Lỗi SQL: " . mysqli_error($conn));
+    }
 }
 ?>
 
@@ -53,6 +93,9 @@ if ($keyword != '') {
                 ABA Mobile<span class="dot">.</span>
             </a>
         </div>
+        <button type="button" class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        ☰
+        </button>
 
         <nav class="header-center">
             <ul class="modern-menu">
@@ -60,6 +103,7 @@ if ($keyword != '') {
                 <li><a href="dienthoai.php">Điện thoại</a></li>
                 <li><a href="suachua.php">Sửa chữa</a></li>
                 <li><a href="tincongnghe.php">Tin công nghệ</a></li>
+                <li class="mobile-menu-extra"><a href="cart.php">🛒 Giỏ hàng</a></li>
             </ul>
         </nav>
 
@@ -69,7 +113,7 @@ if ($keyword != '') {
                 <input 
                     type="text" 
                     name="q" 
-                    placeholder="Tìm điện thoại..." 
+                    placeholder="Tìm kiếm" 
                     class="search-input"
                     value="<?= htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8') ?>"
                 >
@@ -83,29 +127,20 @@ if ($keyword != '') {
                 🛒 Giỏ hàng
                 <span id="cart-badge" class="cart-badge-hidden">0</span>
             </a>
-
-            <a href="#" class="icon-action" title="Tài khoản">👤</a>
-
         </div>
 
     </div>
 </header>
 
-<main class="container">
+    <main class="container">
 
-    <section class="hero">
-        <div class="hero-content">
-            <div class="brand">Galaxy AI<span>✦</span></div>
-
-            <div class="buttons">
-                <a href="#" class="learn-more">Tìm hiểu thêm</a>
-                <a href="#" class="buy-now">Mua ngay</a>
-            </div>
-        </div>
-
-        <div class="hero-image">
-            <img src="../public/images/Fold7.webp" alt="Galaxy AI" />
-        </div>
+        <section class="home-banner">
+        <a href="dienthoai.php" class="home-banner-link">
+            <img 
+                src="../public/images/Banner/Banner.jpg" 
+                alt="Banner khuyến mãi ABA Mobile"
+            >
+        </a>
     </section>
 
     <section class="service-stats">
@@ -167,29 +202,32 @@ if ($keyword != '') {
                         <?= htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') ?>
                     </h3>
 
-                    <div class="price-group">
-                        <p class="old-price">
-                            <?= number_format($row['old_price'], 0, ',', '.') ?> đ
-                        </p>
+            <div class="price-group">
+                <?php if (!empty($row['old_price'])): ?>
+                    <p class="old-price">
+                        <?= number_format($row['old_price'], 0, ',', '.') ?> đ
+                    </p>
+                <?php endif; ?>
 
-                        <p class="product-price">
-                            <?= number_format($row['new_price'], 0, ',', '.') ?> đ
-                        </p>
-                    </div>
+                <p class="product-price">
+                    Từ <?= number_format($row['new_price'], 0, ',', '.') ?> đ
+                </p>
+            </div>
                 </a>
 
                 <button 
                     class="btn-add-cart"
-                    onclick='addToCart(
+                    onclick='addToCartVariant(
                         <?= json_encode($row["id"]) ?>,
+                        <?= json_encode($row["variant_id"]) ?>,
                         <?= json_encode($row["name"], JSON_UNESCAPED_UNICODE) ?>,
+                        <?= json_encode($row["storage"], JSON_UNESCAPED_UNICODE) ?>,
                         <?= json_encode($row["new_price"]) ?>,
                         <?= json_encode($row["image_url"], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
                     )'
                 >
                     🛒 Thêm vào giỏ
                 </button>
-
             </div>
 
         <?php
@@ -288,6 +326,27 @@ if (searchInput && resultDiv) {
         }
     });
 }
+</script>
+<script>
+function toggleMobileMenu() {
+    const header = document.querySelector('.modern-header');
+
+    if (header) {
+        header.classList.toggle('mobile-open');
+    }
+}
+
+document.addEventListener('click', function(e) {
+    const header = document.querySelector('.modern-header');
+
+    if (!header) return;
+
+    const isClickInsideHeader = header.contains(e.target);
+
+    if (!isClickInsideHeader) {
+        header.classList.remove('mobile-open');
+    }
+});
 </script>
 
 </body>
