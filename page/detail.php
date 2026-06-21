@@ -2,6 +2,12 @@
 include('../config/database.php');
 mysqli_set_charset($conn, "utf8mb4");
 
+if (!function_exists('h')) {
+    function h($value) {
+        return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+    }
+}
+
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($id <= 0) {
@@ -57,6 +63,34 @@ if (empty($variants)) {
 }
 
 $defaultVariant = $variants[0];
+
+$specs = [];
+$table_check = mysqli_query($conn, "SHOW TABLES LIKE 'product_specs'");
+
+if ($table_check && mysqli_num_rows($table_check) > 0) {
+    $spec_sql = "
+        SELECT spec_name, spec_value
+        FROM product_specs
+        WHERE product_id = ?
+        ORDER BY sort_order ASC, id ASC
+    ";
+
+    $stmt_specs = mysqli_prepare($conn, $spec_sql);
+
+    if ($stmt_specs) {
+        mysqli_stmt_bind_param($stmt_specs, "i", $id);
+        mysqli_stmt_execute($stmt_specs);
+
+        $spec_result = mysqli_stmt_get_result($stmt_specs);
+
+        while ($row = mysqli_fetch_assoc($spec_result)) {
+            $specs[] = $row;
+        }
+
+        mysqli_stmt_close($stmt_specs);
+    }
+}
+
 
 /* =========================
    LẤY TOÀN BỘ ẢNH TRONG FOLDER
@@ -344,6 +378,51 @@ $mainImage = $galleryImages[0] ?? '';
         </div>
 
     </section>
+    <section class="detail-extra-grid">
+    <?php if (!empty($specs)): ?>
+        <div class="spec-card">
+            <h2>Thông số kỹ thuật</h2>
+
+            <div class="spec-list">
+                <?php foreach ($specs as $spec): ?>
+                    <div class="spec-row">
+                        <div class="spec-name">
+                            <?= h($spec['spec_name']) ?>
+                        </div>
+
+                        <div class="spec-value">
+                            <?= h($spec['spec_value']) ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <div class="detail-policy-card">
+        <h2>Cam kết tại ABA Mobile</h2>
+
+        <div class="policy-item">
+            <span>✅</span>
+            <p>Bảo hành rõ ràng, hỗ trợ nhanh chóng.</p>
+        </div>
+
+        <div class="policy-item">
+            <span>🚚</span>
+            <p>Giao hàng toàn quốc, kiểm tra máy trước khi nhận.</p>
+        </div>
+
+        <div class="policy-item">
+            <span>💳</span>
+            <p>Hỗ trợ trả góp linh hoạt.</p>
+        </div>
+
+        <div class="policy-item">
+            <span>🔄</span>
+            <p>Hỗ trợ đổi trả theo chính sách cửa hàng.</p>
+        </div>
+    </div>
+</section>
 
 </main>
 
