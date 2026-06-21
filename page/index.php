@@ -1,7 +1,9 @@
 <?php
 include('../config/database.php');
+require_once('../config/auth.php');
 
 mysqli_set_charset($conn, "utf8mb4");
+$activePage = 'index';
 
 $keyword = isset($_GET['q']) ? trim($_GET['q']) : '';
 
@@ -79,62 +81,17 @@ if (!empty($params)) {
     <title>ABA Mobile</title>
 
     <link rel="stylesheet" href="../public/css/style.css?v=<?= time(); ?>">
+
+    <link rel="stylesheet" href="../public/css/account_header.css?v=<?= time(); ?>">
 </head>
 
 <body>
 
-<header class="modern-header">
-    <div class="container header-inner">
+<?php include('components/header.php'); ?>
 
-        <div class="header-left">
-            <a href="tel:1900xxxx" class="btn-phone-icon">📞</a>
+<main class="container">
 
-            <a href="index.php" class="modern-logo">
-                ABA Mobile<span class="dot">.</span>
-            </a>
-        </div>
-        <button type="button" class="mobile-menu-btn" onclick="toggleMobileMenu()">
-        ☰
-        </button>
-
-        <nav class="header-center">
-            <ul class="modern-menu">
-                <li><a href="index.php" class="active">Trang chủ</a></li>
-                <li><a href="dienthoai.php">Điện thoại</a></li>
-                <li><a href="suachua.php">Sửa chữa</a></li>
-                <li><a href="tincongnghe.php">Tin công nghệ</a></li>
-                <li class="mobile-menu-extra"><a href="cart.php">🛒 Giỏ hàng</a></li>
-            </ul>
-        </nav>
-
-        <div class="header-right">
-
-            <form action="index.php" method="GET" class="search-form" autocomplete="off">
-                <input 
-                    type="text" 
-                    name="q" 
-                    placeholder="Tìm kiếm" 
-                    class="search-input"
-                    value="<?= htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8') ?>"
-                >
-
-                <button type="submit" class="search-btn">🔍</button>
-
-                <div id="search-results" class="search-results"></div>
-            </form>
-
-            <a href="cart.php" class="btn-cart-modern">
-                🛒 Giỏ hàng
-                <span id="cart-badge" class="cart-badge-hidden">0</span>
-            </a>
-        </div>
-
-    </div>
-</header>
-
-    <main class="container">
-
-        <section class="home-banner">
+    <section class="home-banner">
         <a href="dienthoai.php" class="home-banner-link">
             <img 
                 src="../public/images/Banner/Banner.jpg" 
@@ -175,7 +132,7 @@ if (!empty($params)) {
 
     <h2 class="section-title home-section-title">
         <?php if ($keyword != ''): ?>
-            KẾT QUẢ TÌM KIẾM: "<?= htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8') ?>"
+            KẾT QUẢ TÌM KIẾM: "<?= h($keyword) ?>"
         <?php else: ?>
             SẢN PHẨM NỔI BẬT
         <?php endif; ?>
@@ -183,63 +140,64 @@ if (!empty($params)) {
 
     <div class="product-grid">
 
-        <?php
-        if ($result && mysqli_num_rows($result) > 0) {
-            while ($row = mysqli_fetch_assoc($result)) {
-        ?>
+        <?php if ($result && mysqli_num_rows($result) > 0): ?>
+            <?php while ($row = mysqli_fetch_assoc($result)): ?>
 
-            <div class="product-card">
+                <div class="product-card">
 
-                <a href="detail.php?id=<?= $row['id'] ?>" class="card-link">
-                    <span class="badge badge-sale">-15%</span>
+                    <a href="detail.php?id=<?= (int)$row['id'] ?>" class="card-link">
+                        <span class="badge badge-sale">-15%</span>
 
-                    <img 
-                        src="<?= htmlspecialchars($row['image_url'], ENT_QUOTES, 'UTF-8') ?>" 
-                        alt="<?= htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') ?>" 
-                    />
+                        <img 
+                            src="<?= h($row['image_url']) ?>" 
+                            alt="<?= h($row['name']) ?>" 
+                        />
 
-                    <h3 class="product-title">
-                        <?= htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') ?>
-                    </h3>
+                        <h3 class="product-title">
+                            <?= h($row['name']) ?>
+                        </h3>
 
-            <div class="price-group">
-                <?php if (!empty($row['old_price'])): ?>
-                    <p class="old-price">
-                        <?= number_format($row['old_price'], 0, ',', '.') ?> đ
-                    </p>
-                <?php endif; ?>
+                        <div class="price-group">
+                            <?php if (!empty($row['old_price'])): ?>
+                                <p class="old-price">
+                                    <?= number_format((int)$row['old_price'], 0, ',', '.') ?> đ
+                                </p>
+                            <?php endif; ?>
 
-                <p class="product-price">
-                    Từ <?= number_format($row['new_price'], 0, ',', '.') ?> đ
+                            <p class="product-price">
+                                Từ <?= number_format((int)$row['new_price'], 0, ',', '.') ?> đ
+                            </p>
+                        </div>
+                    </a>
+
+                    <button 
+                        class="btn-add-cart"
+                        onclick='addToCartVariant(
+                            <?= json_encode((int)$row["id"]) ?>,
+                            <?= json_encode((int)$row["variant_id"]) ?>,
+                            <?= json_encode($row["name"], JSON_UNESCAPED_UNICODE) ?>,
+                            <?= json_encode($row["storage"], JSON_UNESCAPED_UNICODE) ?>,
+                            <?= json_encode((int)$row["new_price"]) ?>,
+                            <?= json_encode($row["image_url"], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
+                        )'
+                    >
+                        🛒 Thêm vào giỏ
+                    </button>
+                </div>
+
+            <?php endwhile; ?>
+        <?php else: ?>
+            <?php if ($keyword != ''): ?>
+                <p class="no-products-message">
+                    Không tìm thấy sản phẩm phù hợp với từ khóa:
+                    <strong><?= h($keyword) ?></strong>
                 </p>
-            </div>
-                </a>
-
-                <button 
-                    class="btn-add-cart"
-                    onclick='addToCartVariant(
-                        <?= json_encode($row["id"]) ?>,
-                        <?= json_encode($row["variant_id"]) ?>,
-                        <?= json_encode($row["name"], JSON_UNESCAPED_UNICODE) ?>,
-                        <?= json_encode($row["storage"], JSON_UNESCAPED_UNICODE) ?>,
-                        <?= json_encode($row["new_price"]) ?>,
-                        <?= json_encode($row["image_url"], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
-                    )'
-                >
-                    🛒 Thêm vào giỏ
-                </button>
-            </div>
-
-        <?php
-            }
-        } else {
-            if ($keyword != '') {
-                echo "<p class='no-products-message'>Không tìm thấy sản phẩm phù hợp với từ khóa: <strong>" . htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8') . "</strong></p>";
-            } else {
-                echo "<p class='no-products-message'>Hệ thống đang cập nhật sản phẩm mới...</p>";
-            }
-        }
-        ?>
+            <?php else: ?>
+                <p class="no-products-message">
+                    Hệ thống đang cập nhật sản phẩm mới...
+                </p>
+            <?php endif; ?>
+        <?php endif; ?>
 
     </div>
 
@@ -293,7 +251,7 @@ if (!empty($params)) {
 
 <div id="toast"></div>
 
-<script src="../public/js/cart.js"></script>
+<script src="../public/js/cart.js?v=<?= time(); ?>"></script>
 
 <script>
 const searchInput = document.querySelector('.search-input');
@@ -327,24 +285,33 @@ if (searchInput && resultDiv) {
     });
 }
 </script>
-<script>
-function toggleMobileMenu() {
-    const header = document.querySelector('.modern-header');
 
-    if (header) {
-        header.classList.toggle('mobile-open');
+<script>
+
+function toggleAccountMenu() {
+    const accountMenu = document.querySelector('.account-menu');
+
+    if (accountMenu) {
+        accountMenu.classList.toggle('active');
     }
 }
 
 document.addEventListener('click', function(e) {
     const header = document.querySelector('.modern-header');
+    const accountMenu = document.querySelector('.account-menu');
 
-    if (!header) return;
-
-    const isClickInsideHeader = header.contains(e.target);
-
-    if (!isClickInsideHeader) {
+    if (header && !header.contains(e.target)) {
         header.classList.remove('mobile-open');
+    }
+
+    if (accountMenu && !accountMenu.contains(e.target)) {
+        accountMenu.classList.remove('active');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof updateCartBadge === 'function') {
+        updateCartBadge();
     }
 });
 </script>

@@ -1,5 +1,7 @@
 <?php
 include('../config/database.php');
+require_once('../config/auth.php');
+require_once('../config/send_order_mail.php');
 
 mysqli_set_charset($conn, "utf8mb4");
 
@@ -9,6 +11,8 @@ $checkout_error = '';
    XỬ LÝ ĐẶT HÀNG
 ================================ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user_id = is_logged_in() ? (int)current_user_id() : null;
+
     $customer_name = isset($_POST['customer_name']) ? trim($_POST['customer_name']) : '';
     $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
     $email = isset($_POST['email']) ? trim($_POST['email']) : '';
@@ -43,16 +47,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $sql_product = "
-        SELECT 
-            p.id,
-            p.name,
-            p.image_url,
-            v.new_price
-        FROM products p
-        JOIN product_variants v ON v.product_id = p.id
-        WHERE p.id = ? AND v.id = ?
-        LIMIT 1
-    ";
+    SELECT 
+        p.id,
+        p.name,
+        p.image_url,
+        v.id AS variant_id,
+        v.storage,
+        v.new_price
+    FROM products p
+    JOIN product_variants v ON v.product_id = p.id
+    WHERE p.id = ? AND v.id = ?
+    LIMIT 1
+";
 
     $stmt_product = mysqli_prepare($conn, $sql_product);
 
@@ -84,14 +90,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $subtotal = $price * $quantity;
     $total_amount += $subtotal;
 
-    $order_items[] = [
-        'product_id' => $product['id'],
-        'product_name' => $product['name'],
-        'product_image' => $product['image_url'],
-        'price' => $price,
-        'quantity' => $quantity,
-        'subtotal' => $subtotal
-    ];
+$storage = trim($product['storage'] ?? '');
+$display_name = trim($product['name'] . ($storage != '' ? ' ' . $storage : ''));
+
+$order_items[] = [
+    'product_id' => $product['id'],
+    'variant_id' => $product['variant_id'],
+    'variant_storage' => $storage,
+    'product_name' => $display_name,
+    'product_image' => $product['image_url'],
+    'price' => $price,
+    'quantity' => $quantity,
+    'subtotal' => $subtotal
+];
 }
 
                 if (empty($order_items)) {
@@ -99,8 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $sql_order = "INSERT INTO orders 
-                    (customer_name, phone, email, address, note, payment_method, total_amount, status) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')";
+                (user_id, customer_name, phone, email, address, note, payment_method, total_amount, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
 
                 $stmt_order = mysqli_prepare($conn, $sql_order);
 
@@ -110,7 +121,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 mysqli_stmt_bind_param(
                     $stmt_order,
-                    "ssssssi",
+                    "issssssi",
+                    $user_id,
                     $customer_name,
                     $phone,
                     $email,
@@ -124,9 +136,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $order_id = mysqli_insert_id($conn);
 
-                $sql_item = "INSERT INTO order_items 
-                    (order_id, product_id, product_name, product_image, price, quantity, subtotal)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+$sql_item = "INSERT INTO order_items 
+    (order_id, product_id, variant_id, product_name, variant_storage, product_image, price, quantity, subtotal)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                 $stmt_item = mysqli_prepare($conn, $sql_item);
 
@@ -135,22 +147,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 foreach ($order_items as $order_item) {
-                    mysqli_stmt_bind_param(
-                        $stmt_item,
-                        "iissiii",
-                        $order_id,
-                        $order_item['product_id'],
-                        $order_item['product_name'],
-                        $order_item['product_image'],
-                        $order_item['price'],
-                        $order_item['quantity'],
-                        $order_item['subtotal']
-                    );
+mysqli_stmt_bind_param(
+    $stmt_item,
+    "iiisssiii",
+    $order_id,
+    $order_item['product_id'],
+    $order_item['variant_id'],
+    $order_item['product_name'],
+    $order_item['variant_storage'],
+    $order_item['product_image'],
+    $order_item['price'],
+    $order_item['quantity'],
+    $order_item['subtotal']
+);
 
                     mysqli_stmt_execute($stmt_item);
                 }
 
                 mysqli_commit($conn);
+                sendOrderSuccessMail($conn, $order_id);
 
                 header("Location: order_success.php?order_id=" . $order_id);
                 exit;
@@ -178,58 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
 
-<header class="modern-header">
-    <div class="container header-inner">
-
-        <div class="header-left">
-            <a href="tel:1900xxxx" class="btn-phone-icon">📞</a>
-
-            <a href="index.php" class="modern-logo">
-                ABA Mobile<span class="dot">.</span>
-            </a>
-        </div>
-
-        <!-- NÚT 3 SỌC CHO MOBILE -->
-        <button type="button" class="mobile-menu-btn" onclick="toggleMobileMenu()">
-            ☰
-        </button>
-
-        <nav class="header-center">
-            <ul class="modern-menu">
-                <li><a href="index.php">Trang chủ</a></li>
-                <li><a href="dienthoai.php">Điện thoại</a></li>
-                <li><a href="suachua.php">Sửa chữa</a></li>
-                <li><a href="tincongnghe.php">Tin công nghệ</a></li>
-
-                <!-- Chỉ hiện trong menu mobile -->
-                <li class="mobile-menu-extra"><a href="cart.php">🛒 Giỏ hàng</a></li>
-            </ul>
-        </nav>
-
-        <div class="header-right">
-
-            <form action="dienthoai.php" method="GET" class="search-form" autocomplete="off">
-                <input 
-                    type="text" 
-                    name="q" 
-                    placeholder="Tìm kiếm" 
-                    class="search-input"
-                >
-
-                <button type="submit" class="search-btn">🔍</button>
-
-                <div id="search-results" class="search-results"></div>
-            </form>
-
-            <a href="cart.php" class="btn-cart-modern">
-                🛒 Giỏ hàng
-                <span id="cart-badge" class="cart-badge-hidden">0</span>
-            </a>
-
-        </div>
-
-    </div>
-</header>
+<?php include('components/header.php'); ?>
 
 <section class="checkout-steps">
     <div class="step done">
@@ -417,17 +381,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /* =========================================
    MỞ / ĐÓNG MENU MOBILE
 ========================================= */
-function toggleMobileMenu() {
-    const header = document.querySelector('.modern-header');
 
-    if (header) {
-        header.classList.toggle('mobile-open');
-    }
-}
-
-/* =========================================
-   HIỂN THỊ TÓM TẮT ĐƠN HÀNG
-========================================= */
 function hienThiOrderSummary() {
     let gio = JSON.parse(localStorage.getItem("gio_hang")) || {};
     let list = document.getElementById("order-items-list");
@@ -497,72 +451,6 @@ function submitOrder() {
     return true;
 }
 
-/* =========================================
-   KHỞI TẠO TRANG
-========================================= */
-document.addEventListener('DOMContentLoaded', function () {
-    hienThiOrderSummary();
-
-    if (typeof updateCartBadge === "function") {
-        updateCartBadge();
-    }
-
-    const searchForms = document.querySelectorAll('.search-form');
-
-    searchForms.forEach(function (form) {
-        const searchInput = form.querySelector('.search-input');
-        const resultDiv = form.querySelector('.search-results');
-
-        if (!searchInput || !resultDiv) return;
-
-        searchInput.addEventListener('input', function () {
-            const q = this.value.trim();
-
-            if (q.length > 0) {
-                fetch('search_ajax.php?q=' + encodeURIComponent(q))
-                    .then(response => response.text())
-                    .then(data => {
-                        resultDiv.innerHTML = data;
-                        resultDiv.style.display = data.trim() ? 'block' : 'none';
-                    })
-                    .catch(() => {
-                        resultDiv.innerHTML = '<div class="search-empty">Lỗi tìm kiếm</div>';
-                        resultDiv.style.display = 'block';
-                    });
-            } else {
-                resultDiv.innerHTML = '';
-                resultDiv.style.display = 'none';
-            }
-        });
-
-        form.addEventListener('submit', function (e) {
-            const firstResult = resultDiv.querySelector('.search-item');
-
-            if (firstResult) {
-                e.preventDefault();
-                window.location.href = firstResult.getAttribute('href');
-            }
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!form.contains(e.target)) {
-                resultDiv.style.display = 'none';
-            }
-        });
-    });
-
-    document.addEventListener('click', function (e) {
-        const header = document.querySelector('.modern-header');
-
-        if (!header) return;
-
-        const clickInsideHeader = header.contains(e.target);
-
-        if (!clickInsideHeader) {
-            header.classList.remove('mobile-open');
-        }
-    });
-});
 </script>
 
 </body>

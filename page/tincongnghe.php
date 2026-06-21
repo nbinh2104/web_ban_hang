@@ -2,6 +2,7 @@
 include('../config/database.php');
 
 mysqli_set_charset($conn, 'utf8mb4');
+$activePage = 'tincongnghe';
 
 function h($value) {
     return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
@@ -106,53 +107,7 @@ if ($trending_result) {
 </head>
 
 <body>
-  <header class="modern-header">
-    <div class="container header-inner">
-      <div class="header-left">
-        <a href="tel:1900xxxx" class="btn-phone-icon">📞</a>
-
-        <a href="index.php" class="modern-logo">
-          ABA Mobile<span class="dot">.</span>
-        </a>
-      </div>
-
-      <!-- NÚT 3 SỌC CHO MOBILE -->
-      <button type="button" class="mobile-menu-btn" onclick="toggleMobileMenu()">
-        ☰
-      </button>
-
-      <nav class="header-center">
-        <ul class="modern-menu">
-          <li><a href="index.php">Trang chủ</a></li>
-          <li><a href="dienthoai.php">Điện thoại</a></li>
-          <li><a href="suachua.php">Sửa chữa</a></li>
-          <li><a href="tincongnghe.php" class="active">Tin công nghệ</a></li>
-
-          <!-- Chỉ hiện trong menu mobile -->
-          <li class="mobile-menu-extra"><a href="cart.php">🛒 Giỏ hàng</a></li>
-        </ul>
-      </nav>
-
-      <div class="header-right">
-        <form action="dienthoai.php" method="GET" class="search-form" autocomplete="off">
-          <input
-            type="text"
-            name="q"
-            placeholder="Tìm kiếm"
-            class="search-input"
-            value="<?php echo h($_GET['q'] ?? ''); ?>"
-          >
-          <button type="submit" class="search-btn">🔍</button>
-          <div id="search-results" class="search-results"></div>
-        </form>
-
-        <a href="cart.php" class="btn-cart-modern">
-          🛒 Giỏ hàng
-          <span id="cart-badge" class="cart-badge-hidden">0</span>
-        </a>
-      </div>
-    </div>
-  </header>
+<?php include('components/header.php'); ?>
 
   <main class="container news-page">
     <div class="news-breadcrumb">
@@ -312,83 +267,5 @@ if ($trending_result) {
     </a>
   </div>
   <script src="../public/js/cart.js?v=<?php echo time(); ?>"></script>
-
-<script>
-/* =========================================
-   MỞ / ĐÓNG MENU MOBILE
-========================================= */
-function toggleMobileMenu() {
-    const header = document.querySelector('.modern-header');
-
-    if (header) {
-        header.classList.toggle('mobile-open');
-    }
-}
-
-/* =========================================
-   TÌM KIẾM AJAX
-========================================= */
-document.addEventListener('DOMContentLoaded', function () {
-    const searchForms = document.querySelectorAll('.search-form');
-
-    searchForms.forEach(function (form) {
-        const searchInput = form.querySelector('.search-input');
-        const resultDiv = form.querySelector('.search-results');
-
-        if (!searchInput || !resultDiv) return;
-
-        searchInput.addEventListener('input', function () {
-            const q = this.value.trim();
-
-            if (q.length > 0) {
-                fetch('search_ajax.php?q=' + encodeURIComponent(q))
-                    .then(response => response.text())
-                    .then(data => {
-                        resultDiv.innerHTML = data;
-                        resultDiv.style.display = data.trim() ? 'block' : 'none';
-                    })
-                    .catch(() => {
-                        resultDiv.innerHTML = '<div class="search-empty">Lỗi tìm kiếm</div>';
-                        resultDiv.style.display = 'block';
-                    });
-            } else {
-                resultDiv.innerHTML = '';
-                resultDiv.style.display = 'none';
-            }
-        });
-
-        form.addEventListener('submit', function (e) {
-            const firstResult = resultDiv.querySelector('.search-item');
-
-            if (firstResult) {
-                e.preventDefault();
-                window.location.href = firstResult.getAttribute('href');
-            }
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!form.contains(e.target)) {
-                resultDiv.style.display = 'none';
-            }
-        });
-    });
-
-    document.addEventListener('click', function (e) {
-        const header = document.querySelector('.modern-header');
-
-        if (!header) return;
-
-        const clickInsideHeader = header.contains(e.target);
-
-        if (!clickInsideHeader) {
-            header.classList.remove('mobile-open');
-        }
-    });
-
-    if (typeof updateCartBadge === 'function') {
-        updateCartBadge();
-    }
-});
-</script>
 </body>
 </html>
