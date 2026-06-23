@@ -19,6 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address = isset($_POST['address']) ? trim($_POST['address']) : '';
     $note = isset($_POST['note']) ? trim($_POST['note']) : '';
     $payment_method = isset($_POST['payment_method']) ? trim($_POST['payment_method']) : 'cod';
+    $payment_account = isset($_POST['payment_account']) ? trim($_POST['payment_account']) : '';
+    $payment_reference = isset($_POST['payment_reference']) ? trim($_POST['payment_reference']) : '';
     $cart_data = isset($_POST['cart_data']) ? $_POST['cart_data'] : '';
 
     if ($customer_name == '' || $phone == '' || $email == '' || $address == '') {
@@ -110,8 +112,8 @@ $order_items[] = [
                 }
 
                 $sql_order = "INSERT INTO orders 
-                (user_id, customer_name, phone, email, address, note, payment_method, total_amount, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
+                (user_id, customer_name, phone, email, address, note, payment_method, payment_account, payment_reference, total_amount, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
 
                 $stmt_order = mysqli_prepare($conn, $sql_order);
 
@@ -121,7 +123,7 @@ $order_items[] = [
 
                 mysqli_stmt_bind_param(
                     $stmt_order,
-                    "issssssi",
+                    "issssssssi",
                     $user_id,
                     $customer_name,
                     $phone,
@@ -129,6 +131,8 @@ $order_items[] = [
                     $address,
                     $note,
                     $payment_method,
+                    $payment_account,
+                    $payment_reference,
                     $total_amount
                 );
 
@@ -296,7 +300,6 @@ mysqli_stmt_bind_param(
 
                 <label class="payment-option">
                     <input type="radio" name="payment_method" value="cod" checked />
-                    <span class="pay-icon">💵</span>
 
                     <div>
                         <div class="pay-label">Thanh toán khi nhận hàng (COD)</div>
@@ -306,8 +309,6 @@ mysqli_stmt_bind_param(
 
                 <label class="payment-option">
                     <input type="radio" name="payment_method" value="bank" />
-                    <span class="pay-icon">🏦</span>
-
                     <div>
                         <div class="pay-label">Chuyển khoản ngân hàng</div>
                         <div class="pay-sub">Thông tin tài khoản gửi qua email</div>
@@ -316,7 +317,6 @@ mysqli_stmt_bind_param(
 
                 <label class="payment-option">
                     <input type="radio" name="payment_method" value="momo" />
-                    <span class="pay-icon">💜</span>
 
                     <div>
                         <div class="pay-label">Ví MoMo</div>
@@ -324,6 +324,73 @@ mysqli_stmt_bind_param(
                     </div>
                 </label>
 
+            </div>
+            <input type="hidden" name="payment_account" id="payment_account">
+            <input type="hidden" name="payment_reference" id="payment_reference">
+
+            <div class="payment-detail active" id="payment-detail-cod">
+                <div class="payment-detail-title">
+                    Thanh toán khi nhận hàng
+                </div>
+
+                <p>
+                    Bạn sẽ thanh toán tiền mặt cho nhân viên giao hàng khi nhận được sản phẩm.
+                </p>
+            </div>
+
+            <div class="payment-detail" id="payment-detail-bank">
+                <div class="payment-detail-title">
+                    Chuyển khoản ngân hàng
+                </div>
+
+                <div class="bank-payment-box">
+                    <div class="qr-box">
+                        <img 
+                            src="../public/images/payment/bank-qr.jpg" 
+                            alt="QR chuyển khoản ngân hàng"
+                            onerror="this.style.display='none'; this.parentElement.classList.add('qr-missing');"
+                        >
+
+                        <span>QR ngân hàng</span>
+                    </div>
+
+                    <div class="bank-info">
+                        <p><strong>Ngân hàng:</strong> MB Bank</p>
+                        <p><strong>Số tài khoản:</strong> 0123456789</p>
+                        <p><strong>Chủ tài khoản:</strong> ABA MOBILE</p>
+                        <p><strong>Nội dung CK:</strong> ABA + Số điện thoại đặt hàng</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-detail" id="payment-detail-momo">
+                <div class="payment-detail-title">
+                    Thanh toán qua ví điện tử
+                </div>
+
+                <div class="wallet-payment-box">
+                    <div class="payment-input-group">
+                        <label>Số điện thoại ví điện tử</label>
+                        <input 
+                            type="text" 
+                            id="wallet_phone"
+                            placeholder="Nhập số điện thoại MoMo / ví điện tử"
+                        >
+                    </div>
+
+                    <div class="payment-input-group">
+                        <label>Mã giao dịch</label>
+                        <input 
+                            type="text" 
+                            id="wallet_reference"
+                            placeholder="Nhập mã giao dịch sau khi thanh toán"
+                        >
+                    </div>
+
+                    <div class="wallet-note">
+                        Không nhập số thẻ ngân hàng đầy đủ để đảm bảo an toàn. Chỉ nhập số điện thoại ví hoặc mã giao dịch.
+                    </div>
+                </div>
             </div>
 
             <input type="hidden" name="cart_data" id="cart_data">
@@ -378,10 +445,6 @@ mysqli_stmt_bind_param(
 <script src="../public/js/cart.js?v=<?= time(); ?>"></script>
 
 <script>
-/* =========================================
-   MỞ / ĐÓNG MENU MOBILE
-========================================= */
-
 function hienThiOrderSummary() {
     let gio = JSON.parse(localStorage.getItem("gio_hang")) || {};
     let list = document.getElementById("order-items-list");
@@ -400,11 +463,16 @@ function hienThiOrderSummary() {
                 <a href="dienthoai.php" class="empty-link">Mua sắm ngay</a>
             </div>
         `;
+
+        document.getElementById("sub-total").innerText = "0 đ";
+        document.getElementById("grand-total").innerText = "0 đ";
+
         return;
     }
 
     keys.forEach((id) => {
         let sp = gio[id];
+
         let thanhTien = Number(sp.gia || 0) * Number(sp.so_luong || 0);
         tong += thanhTien;
 
@@ -435,9 +503,20 @@ function hienThiOrderSummary() {
         tong.toLocaleString("vi-VN") + " đ";
 }
 
-/* =========================================
-   GỬI ĐƠN HÀNG
-========================================= */
+function showPaymentDetail() {
+    const method = document.querySelector('input[name="payment_method"]:checked')?.value || 'cod';
+
+    document.querySelectorAll('.payment-detail').forEach(function(box) {
+        box.classList.remove('active');
+    });
+
+    const target = document.getElementById('payment-detail-' + method);
+
+    if (target) {
+        target.classList.add('active');
+    }
+}
+
 function submitOrder() {
     let gio = JSON.parse(localStorage.getItem("gio_hang")) || {};
 
@@ -446,11 +525,50 @@ function submitOrder() {
         return false;
     }
 
+    const method = document.querySelector('input[name="payment_method"]:checked')?.value || 'cod';
+
+    let paymentAccount = '';
+    let paymentReference = '';
+
+    if (method === 'cod') {
+        paymentAccount = 'Thanh toán khi nhận hàng';
+        paymentReference = '';
+    }
+
+    if (method === 'bank') {
+        paymentAccount = 'Chuyển khoản ngân hàng';
+        paymentReference = document.getElementById('bank_reference')?.value.trim() || '';
+    }
+
+    if (method === 'momo') {
+        const walletPhone = document.getElementById('wallet_phone')?.value.trim() || '';
+        const walletReference = document.getElementById('wallet_reference')?.value.trim() || '';
+
+        if (walletPhone === '') {
+            alert("Vui lòng nhập số điện thoại ví điện tử.");
+            return false;
+        }
+
+        paymentAccount = walletPhone;
+        paymentReference = walletReference;
+    }
+
+    document.getElementById("payment_account").value = paymentAccount;
+    document.getElementById("payment_reference").value = paymentReference;
+
     document.getElementById("cart_data").value = JSON.stringify(gio);
 
     return true;
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    hienThiOrderSummary();
+    showPaymentDetail();
+
+    document.querySelectorAll('input[name="payment_method"]').forEach(function(radio) {
+        radio.addEventListener('change', showPaymentDetail);
+    });
+});
 </script>
 
 </body>

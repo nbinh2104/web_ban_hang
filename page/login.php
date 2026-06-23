@@ -31,8 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = mysqli_fetch_assoc($result);
 
             if (!$user || !password_verify($password, $user['password_hash'])) {
-                $error = 'Email hoặc mật khẩu không đúng.';
-            } else {
+                    $error = 'Email hoặc mật khẩu không đúng.';
+                } elseif (($user['status'] ?? 'active') === 'locked') {
+                    $error = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.';
+                } else {
                 session_regenerate_id(true);
 
                 $_SESSION['user_id'] = (int)$user['id'];

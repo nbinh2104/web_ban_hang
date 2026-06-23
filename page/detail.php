@@ -28,6 +28,58 @@ $product = mysqli_fetch_assoc($product_result);
 if (!$product) {
     die("Không tìm thấy sản phẩm");
 }
+/* =========================
+   XỬ LÝ ĐÁNH GIÁ SẢN PHẨM
+========================= */
+$review_error = '';
+$review_success = isset($_GET['review']) && $_GET['review'] === 'success';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_submit'])) {
+    if (!is_logged_in()) {
+        $review_error = 'Vui lòng đăng nhập để đánh giá sản phẩm.';
+    } else {
+        $rating = isset($_POST['rating']) ? (int)$_POST['rating'] : 0;
+        $comment = trim($_POST['comment'] ?? '');
+
+        if ($rating < 1 || $rating > 5) {
+            $review_error = 'Vui lòng chọn số sao từ 1 đến 5.';
+        } elseif ($comment === '') {
+            $review_error = 'Vui lòng nhập nội dung đánh giá.';
+        } else {
+            $user_id = current_user_id();
+            $customer_name = current_user_name();
+
+            $sql_review = "
+                INSERT INTO product_reviews
+                (product_id, user_id, customer_name, rating, comment, status)
+                VALUES (?, ?, ?, ?, ?, 'pending')
+            ";
+
+            $stmt_review = mysqli_prepare($conn, $sql_review);
+
+            if ($stmt_review) {
+                mysqli_stmt_bind_param(
+                    $stmt_review,
+                    "iisis",
+                    $id,
+                    $user_id,
+                    $customer_name,
+                    $rating,
+                    $comment
+                );
+
+                if (mysqli_stmt_execute($stmt_review)) {
+                    header("Location: detail.php?id=" . $id . "&review=success#product-reviews");
+                    exit;
+                } else {
+                    $review_error = 'Không thể gửi đánh giá. Vui lòng thử lại.';
+                }
+            } else {
+                $review_error = 'Lỗi hệ thống. Không thể gửi đánh giá.';
+            }
+        }
+    }
+}
 
 /* =========================
    LẤY CÁC PHIÊN BẢN DUNG LƯỢNG
@@ -171,6 +223,56 @@ if (empty($galleryImages) && !empty($product['image_url'])) {
 }
 
 $mainImage = $galleryImages[0] ?? '';
+/* =========================
+   LẤY ĐÁNH GIÁ ĐÃ DUYỆT
+========================= */
+$review_count = 0;
+$review_avg = 0;
+$approved_reviews = [];
+
+$sql_review_summary = "
+    SELECT 
+        COUNT(*) AS total_reviews,
+        AVG(rating) AS avg_rating
+    FROM product_reviews
+    WHERE product_id = ?
+      AND status = 'approved'
+";
+
+$stmt_review_summary = mysqli_prepare($conn, $sql_review_summary);
+
+if ($stmt_review_summary) {
+    mysqli_stmt_bind_param($stmt_review_summary, "i", $id);
+    mysqli_stmt_execute($stmt_review_summary);
+
+    $summary_result = mysqli_stmt_get_result($stmt_review_summary);
+    $summary = mysqli_fetch_assoc($summary_result);
+
+    $review_count = (int)($summary['total_reviews'] ?? 0);
+    $review_avg = round((float)($summary['avg_rating'] ?? 0), 1);
+}
+
+$sql_reviews = "
+    SELECT *
+    FROM product_reviews
+    WHERE product_id = ?
+      AND status = 'approved'
+    ORDER BY id DESC
+    LIMIT 10
+";
+
+$stmt_reviews = mysqli_prepare($conn, $sql_reviews);
+
+if ($stmt_reviews) {
+    mysqli_stmt_bind_param($stmt_reviews, "i", $id);
+    mysqli_stmt_execute($stmt_reviews);
+
+    $reviews_result = mysqli_stmt_get_result($stmt_reviews);
+
+    while ($review = mysqli_fetch_assoc($reviews_result)) {
+        $approved_reviews[] = $review;
+    }
+}
 
 ?>
 <!doctype html>
@@ -372,6 +474,123 @@ $mainImage = $galleryImages[0] ?? '';
             <p>Hỗ trợ đổi trả theo chính sách cửa hàng.</p>
         </div>
     </div>
+</section>
+<section id="product-reviews" class="product-reviews-section">
+
+    <div class="review-header">
+        <div>
+            <h2>Đánh giá sản phẩm</h2>
+
+            <?php if ($review_count > 0): ?>
+                <p>
+                    <span class="review-score"><?= $review_avg ?>/5</span>
+                    <span class="review-stars">
+                        <?= str_repeat('★', (int)round($review_avg)) ?>
+                        <?= str_repeat('☆', 5 - (int)round($review_avg)) ?>
+                    </span>
+                    <span class="review-count">
+                        Dựa trên <?= $review_count ?> đánh giá
+                    </span>
+                </p>
+            <?php else: ?>
+                <p class="review-count">
+                    Chưa có đánh giá nào cho sản phẩm này.
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <?php if ($review_success): ?>
+        <div class="review-success">
+            Cảm ơn bạn đã gửi đánh giá. Đánh giá sẽ hiển thị sau khi admin duyệt.
+        </div>
+    <?php endif; ?>
+
+    <?php if ($review_error !== ''): ?>
+        <div class="review-error">
+            <?= h($review_error) ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="review-layout">
+
+        <div class="review-list">
+            <h3>Nhận xét từ khách hàng</h3>
+
+            <?php if (!empty($approved_reviews)): ?>
+                <?php foreach ($approved_reviews as $review): ?>
+                    <div class="review-item">
+                        <div class="review-item-top">
+                            <strong><?= h($review['customer_name']) ?></strong>
+
+                            <span class="review-stars">
+                                <?= str_repeat('★', (int)$review['rating']) ?>
+                                <?= str_repeat('☆', 5 - (int)$review['rating']) ?>
+                            </span>
+                        </div>
+
+                        <p>
+                            <?= nl2br(h($review['comment'])) ?>
+                        </p>
+
+                        <small>
+                            <?= date('d/m/Y H:i', strtotime($review['created_at'])) ?>
+                        </small>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="review-empty">
+                    Chưa có nhận xét nào được hiển thị.
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="review-form-box">
+            <h3>Gửi đánh giá của bạn</h3>
+
+            <?php if (is_logged_in()): ?>
+                <form method="POST" action="detail.php?id=<?= (int)$id ?>#product-reviews">
+                    <input type="hidden" name="review_submit" value="1">
+
+                    <div class="review-form-group">
+                        <label>Chọn số sao</label>
+
+                        <select name="rating" required>
+                            <option value="">-- Chọn đánh giá --</option>
+                            <option value="5">★★★★★ - Rất hài lòng</option>
+                            <option value="4">★★★★☆ - Hài lòng</option>
+                            <option value="3">★★★☆☆ - Bình thường</option>
+                            <option value="2">★★☆☆☆ - Chưa hài lòng</option>
+                            <option value="1">★☆☆☆☆ - Không hài lòng</option>
+                        </select>
+                    </div>
+
+                    <div class="review-form-group">
+                        <label>Nội dung đánh giá</label>
+
+                        <textarea 
+                            name="comment" 
+                            rows="5" 
+                            placeholder="Nhập cảm nhận của bạn về sản phẩm..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-review-submit">
+                        Gửi đánh giá
+                    </button>
+                </form>
+            <?php else: ?>
+                <div class="review-login-note">
+                    Vui lòng 
+                    <a href="login.php">đăng nhập</a> 
+                    để đánh giá sản phẩm.
+                </div>
+            <?php endif; ?>
+        </div>
+
+    </div>
+
 </section>
 
 </main>
